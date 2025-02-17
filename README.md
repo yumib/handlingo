@@ -47,5 +47,4 @@ Hanglingo is a web application designed to help users learn American Sign Langua
 ## 📂 Project Structure  (Model, View, Controller):
 
 - main branch → Production-ready code
-- dev branch → Ongoing work before merging into main, split into intended functions (frontend, backend, model)
-- Feature branches → Each person creates their own (frontend/login, frontend/authentication, etc.)
+- dev branch → Ongoing work before merging into main, split into features (i.e. main/dev/feature1)
