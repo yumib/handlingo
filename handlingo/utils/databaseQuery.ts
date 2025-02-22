@@ -7,12 +7,13 @@ export async function getUserLessonAttempts(userId: number) {
     //we change this to change what we get from the database
         .from('User_Progress_Table')
         .select('*')//gets everything from the table
-        .eq('user_id', userId);
+        // .eq('user_id', userId);
 
     if (error) {
         console.error('Error fetching user attempts:', error);
         return null;
     }
 
+    console.log("Query result:", data);
     return data;
 }
