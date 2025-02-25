@@ -14,5 +14,6 @@ export async function getUserLessonAttempts(userId: number) {
         return null;
     }
 
+    console.log("Query result:", data);
     return data;
 }
