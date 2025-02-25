@@ -1,5 +1,5 @@
 import { createBrowserClient } from "@supabase/ssr";
-
+//for frontend data base calls
 export const createClient = () =>
   createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
