@@ -4,15 +4,20 @@ import { encodedRedirect } from "@/utils/utils";
 import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { getUserByUsername } from "@/utils/databaseQuery";
+import { getUserByUsername, createNewUser } from "@/utils/databaseQuery";
 
 export const signUpAction = async (formData: FormData) => {
+  const fname = formData.get("firstName")?.toString();
+  const lname = formData.get("lastName")?.toString();
   const email = formData.get("email")?.toString();
+  const username = formData.get("username")?.toString();
   const password = formData.get("password")?.toString();
   const supabase = await createClient();
   const origin = (await headers()).get("origin");
 
-  if (!email || !password) {
+  console.log(fname, lname, email, username, password);
+
+  if (!fname || !lname || !email || !username || !password) {
     return encodedRedirect(
       "error",
       "/sign-up",
@@ -20,12 +25,19 @@ export const signUpAction = async (formData: FormData) => {
     );
   }
 
+  const {success, data} = await createNewUser(fname, lname, email, username, password);
+  
+  if (success == false) {
+    console.error("Not able to add user to User_Table");
+    return encodedRedirect("error", "/sign-up", "Not able to add user to User_Table");
+  }
+
   const { error } = await supabase.auth.signUp({
     email,
     password,
-    options: {
-      emailRedirectTo: `${origin}/auth/callback`,
-    },
+    // options: {
+    //   emailRedirectTo: `${origin}/auth/callback`,
+    // },
   });
 
   if (error) {
@@ -34,8 +46,8 @@ export const signUpAction = async (formData: FormData) => {
   } else {
     return encodedRedirect(
       "success",
-      "/sign-up",
-      "Thanks for signing up! Please check your email for a verification link.",
+      "/",
+      "Thanks for signing up! You can now log in.",
     );
   }
 };
@@ -137,5 +149,5 @@ export const resetPasswordAction = async (formData: FormData) => {
 export const signOutAction = async () => {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  return redirect("/sign-in");
+  return redirect("/");
 };

@@ -1,4 +1,5 @@
 import { getUserLessonAttempts } from "@/utils/databaseQuery";
+import LogoutButton from "@/components/ui/logoutButton";
 
 export default async function dashboard() {
     const userId = 1;
@@ -22,7 +23,8 @@ export default async function dashboard() {
                   </ul>
               ) : (
                   <p>No attempts found.</p>
-              )}  
+              )} 
+        <LogoutButton /> 
       </div>
     );
 }

@@ -52,3 +52,37 @@ export async function getUserByUsername(username: string) {
     console.log("user email: ", data.email)
     return data;
 }
+
+export async function createNewUser(fname: string, lname: string, email: string, username: string, password: string) {
+    const supabase = await initializeSupabase(); // Make sure Supabase is ready
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+
+    if (!supabase) {
+        throw new Error("Supabase client failed to initialize");
+    }
+    if (userError || !userData?.user) {
+        throw new Error("Failed to get authenticated user.");
+    }
+
+    // Insert user into 'User_Table'
+    const { data, error } = await supabase
+        .from("User_Table")
+        .insert([
+            {
+                first_name: fname,
+                last_name: lname,
+                email: email,
+                username: username,
+                password: password, 
+                // auth_user_id: userData.user.id, // Link to Supabase Auth
+                created_or_updated_on: new Date().toISOString(),
+            }
+        ]);
+
+    if (error) {
+        console.error("Error inserting new user:", error);
+        return { success: false, message: error.message };
+    }
+    
+    return { success: true, data };
+}
