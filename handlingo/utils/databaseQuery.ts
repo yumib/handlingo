@@ -1,12 +1,24 @@
 import { createClient } from '@/utils/supabase/server';
-//this is a sample of how we can query we can change this to do what we need and
+
+let supabase: Awaited<ReturnType<typeof createClient>> | null = null; // Makes client a global var to be used by queries 
+
+async function initializeSupabase() {
+    if (!supabase) {
+        supabase = await createClient(); // Ensure it's fully initialized
+    }
+    return supabase;
+}
+
 export async function getUserLessonAttempts(userId: number) {
-    const supabase = await createClient(); //Make sure the client is connected
+    const supabase = await initializeSupabase(); // Make sure Supabase is ready
+
+    if (!supabase) {
+        throw new Error("Supabase client failed to initialize");
+    }
 
     const { data, error } = await supabase
-    //we change this to change what we get from the database
         .from('User_Progress_Table')
-        .select('*')//gets everything from the table
+        .select('*')
         .eq('user_id', userId);
 
     if (error) {
@@ -15,5 +27,28 @@ export async function getUserLessonAttempts(userId: number) {
     }
 
     console.log("Query result:", data);
+    return data;
+}
+
+export async function getUserByUsername(username: string) {
+    const supabase = await initializeSupabase(); // Make sure Supabase is ready
+
+    if (!supabase) {
+        throw new Error("Supabase client failed to initialize");
+    }
+
+    const { data, error } = await supabase
+        .from("User_Table")
+        .select("*") // Select only relevant fields
+        .eq("username", username)
+        .single()
+
+    if (error) {
+        console.error("Error fetching user:", error);
+        return null;
+    }
+
+    console.log("User result:", data);
+    console.log("user email: ", data.email)
     return data;
 }
