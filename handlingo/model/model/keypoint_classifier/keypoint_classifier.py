@@ -1,35 +1,24 @@
 import numpy as np
 import tensorflow as tf
+import tensorflowjs as tfjs
 
 
 class KeyPointClassifier(object):
-    def __init__(
-        self,
-        model_path="model/keypoint_classifier/keypoint_classifier.tflite",
-        num_threads=1,
-    ):
-        self.interpreter = tf.lite.Interpreter(
-            model_path=model_path, num_threads=num_threads
-        )
+    def __init__(self,
+        model_path= "model/keypoint_classifier/tfjs_model/model.json",
+        ):
+        #load model
+        self.model = tfjs.converters.load_keras_model(model_path)
 
-        self.interpreter.allocate_tensors()
-        self.input_details = self.interpreter.get_input_details()
-        self.output_details = self.interpreter.get_output_details()
 
-    def __call__(
-        self,
-        landmark_list,
-    ):
-        input_details_tensor_index = self.input_details[0]["index"]
-        self.interpreter.set_tensor(
-            input_details_tensor_index, np.array([landmark_list], dtype=np.float32)
-        )
-        self.interpreter.invoke()
+    def __call__(self,landmark_list):
+        # Convert the input into a format suitable for the model
+        input_data = np.array([landmark_list], dtype=np.float32)
 
-        output_details_tensor_index = self.output_details[0]["index"]
+        # Run inference on the model and get the result
+        result = self.model.predict(input_data)
 
-        result = self.interpreter.get_tensor(output_details_tensor_index)
-
+        # Get the index of the max value from the result (same as np.argmax)
         result_index = np.argmax(np.squeeze(result))
 
         return result_index
