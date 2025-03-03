@@ -12,6 +12,7 @@
     "@radix-ui/react-slot": "^1.1.0",
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "latest",
+    "@tensorflow/tfjs-node": "^4.22.0",
     "autoprefixer": "10.4.20",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
@@ -33,6 +34,6 @@
     "typescript": "5.7.2"
   },
   "engines": {
-  "node": "20.x"
+    "node": "20.x"
   }
 }

@@ -1,32 +1,50 @@
 import { hasEnvVars } from "@/utils/supabase/check-env-vars";
-import { getUserLessonAttempts } from "@/utils/databaseQuery";
+import { signInAction } from "@/app/actions";
+import { FormMessage, Message } from "@/components/form-message";
+import { SubmitButton } from "@/components/submit-button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import Link from "next/link";
 
 
-export default async function Home() {
-  const userId = 1;
-  const userAttempts = await getUserLessonAttempts(userId);
-  console.log(userAttempts)
+
+export default async function SignIn(props: { searchParams: Promise<Message> }) {
+  const searchParams = await props.searchParams;
 
   return (
-    <div>
-      <h1>Welcome to My Next.js App</h1>
-      <p>Home page is working without deleted components.</p>
-
-      <h1 className="text-2xl font-bold">User Lesson Attempts</h1>
-            {userAttempts && userAttempts.length > 0 ? (
-                <ul>
-                    {userAttempts.map((attempt, index) => (
-                        <li key={index} className="p-2 border-b">
-                            Lesson ID: {attempt.lesson_id} - 
-                            Attempts: {attempt.completion_status} - 
-                            Score: {attempt.score}
-                        </li>
-                    ))}
-                </ul>
-            ) : (
-                <p>No attempts found.</p>
-            )}
-
-    </div>
+    <form className="flex-1 flex flex-col min-w-64">
+      <h1 className="text-2xl font-medium">Sign in</h1>
+      <p className="text-sm text-foreground">
+        Don't have an account?{" "}
+        <Link className="text-foreground font-medium underline" href="/sign-up">
+          Sign up
+        </Link>
+      </p>
+      <div className="flex flex-col gap-2 [&>input]:mb-3 mt-8">
+        <Label htmlFor="username">Username</Label>
+        <Input name="username" placeholder="Your username" required />
+        <div className="flex justify-between items-center">
+          <Label htmlFor="password">Password</Label>
+          <Link
+            className="text-xs text-foreground underline"
+            href="/forgot-password"
+          >
+            Forgot Password?
+          </Link>
+        </div>
+        <Input
+          type="password"
+          name="password"
+          placeholder="Your password"
+          required
+        />
+        <SubmitButton pendingText="Signing In..." formAction={signInAction}>
+          Sign in
+        </SubmitButton>
+        <FormMessage message={searchParams} />
+      </div>
+    </form>            
   );
 }
+
+
