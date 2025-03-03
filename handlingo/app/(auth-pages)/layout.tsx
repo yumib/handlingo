@@ -1,3 +1,6 @@
+// LAYOUT PAGE USED FOR COMPONENTS SHARED BETWEEN PAGES 
+// 
+// 
 // export default async function Layout({
 //   children,
 // }: {
