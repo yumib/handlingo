@@ -1,6 +1,6 @@
 "use client" 
 
-import CameraComponent from "../camera/componet";
+import CameraComponent from "@/components/client/camera";
 
 const CameraTestPage = () => {
   return (
