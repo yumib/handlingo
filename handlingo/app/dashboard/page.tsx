@@ -1,5 +1,5 @@
 import {getUserLessonAttempts, getInternalUserByEmail} from "@/utils/databaseQuery";
-import LogoutButton from "@/components/ui/logoutButton";
+import Layout from '@/components/ui/layout'; 
 import { createClient } from "@/utils/supabase/server";
 
 export default async function dashboard() {
@@ -32,7 +32,7 @@ export default async function dashboard() {
     const userAttempts = await getUserLessonAttempts(internalUser[0].id);
 
     return (
-        <div>
+        <Layout>
         <h1 className="text-2xl font-bold">Hello, {internalUser[0].first_name}</h1>
         <br></br>
         <h1 className="text-2xl font-bold">User Lesson Attempts</h1>
@@ -50,7 +50,6 @@ export default async function dashboard() {
               ) : (
                   <p>No attempts found.</p>
               )} 
-        <LogoutButton /> 
-      </div>
+      </Layout>
     );
 }
