@@ -121,7 +121,7 @@ export default function CameraFeed({ targetLetter , onNext, onPrediction }: { ta
         setStatus("red");
       }
     } 
-
+  };
 
   const handleNext = () => {
     resetHoldTimer();
@@ -131,7 +131,8 @@ export default function CameraFeed({ targetLetter , onNext, onPrediction }: { ta
   useEffect(() => {
     const interval = setInterval(processFrame, 100); //change the 100ms if needed
     return () => clearInterval(interval);
-  }, [model, handLandmarker]);
+  }, [model, handLandmarker]); //not sure if need to dont need handLandmarker
+
 
   return (
     <div>
@@ -143,5 +144,5 @@ export default function CameraFeed({ targetLetter , onNext, onPrediction }: { ta
       </div>
     </div>
   );
-}
+
 }
