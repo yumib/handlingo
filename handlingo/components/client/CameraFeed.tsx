@@ -20,7 +20,7 @@ export default function CameraFeed({ targetLetter , onNext, onPrediction }: { ta
   useEffect(() => {
     const loadModel = async () => {
       try {
-        const loadedModel = await tf.loadLayersModel('file://model/tfjs_model/model.json'); //might need to update model path
+        const loadedModel = await tf.loadLayersModel('/tfjs_model/model.json'); //might need to update model path
         setModel(loadedModel);
       } catch (error) {
         console.error('Error loading model:', error);
@@ -77,7 +77,7 @@ export default function CameraFeed({ targetLetter , onNext, onPrediction }: { ta
 
     // Detect hand landmarks using Mediapipe HandLandmarker
     const video = videoRef.current;
-    const result: HandLandmarkerResult = await handLandmarker.detect(video);
+    const result: HandLandmarkerResult = handLandmarker.detect(video);
     
     // give landmaks to getLandmarkData to get input for model
     if (result && result.landmarks.length > 0) {
