@@ -1,7 +1,13 @@
-"use client"; // Specifies that this component runs on the client side
+/*
+    This file will handle the video stream and capture frames
+    We then pass the video feed and frames to CameraFeed.tsx for processing
+*/
 
-import React, { useRef, useState, useEffect } from "react"; // Import necessary hooks
-import Webcam from "react-webcam"; // Import the webcam component
+// Specifies that this component runs on the client side
+"use client"; 
+
+import React, { useRef, useState, useEffect } from "react"; 
+import Webcam from "react-webcam"; 
 
 // Define video constraints (resolution and facing mode)
 const videoConstraints = {
@@ -10,18 +16,56 @@ const videoConstraints = {
     facingMode: "user", // Uses the front camera
 };
 
-const CameraComponent = () => {
+const CameraComponent = ({ onFrameCaptured }: { onFrameCaptured: (frame: HTMLVideoElement) => void }) => {
     // Refs to store webcam and video elements
-    const webcamRef = useRef<Webcam>(null); // Reference to the webcam component
-    const videoRef = useRef<HTMLVideoElement>(null); // Reference to the video element
+    const webcamRef = useRef<Webcam>(null); 
+    const videoRef = useRef<HTMLVideoElement>(null);
 
-    // State variables to track recording status, media recorder, and video URL
-    const [isRecording, setIsRecording] = useState(false); // Tracks if recording is active
-    const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null); // Stores the media recorder instance
-    const [videoUrl, setVideoUrl] = useState<string | null>(null); // Stores the recorded video URL
+    // start camera
+    useEffect(() => {
+        const startVideo = async () => {
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            if (videoRef.current) {
+              videoRef.current.srcObject = stream;
+            }
+          } catch (err) {
+            console.error("Error accessing camera: ", err);
+          }
+        };
+    
+        startVideo();
 
-    // Function to start recording
-    const startRecording = () => {
+        return () => {
+            // Cleanup video stream on component unmount
+            if (videoRef.current && videoRef.current.srcObject) {
+              const stream = videoRef.current.srcObject as MediaStream;
+              const tracks = stream.getTracks();
+              tracks.forEach(track => track.stop());
+            }
+          };
+    }, []);
+
+    // capture frames
+    useEffect(() => {
+        if (videoRef.current) {
+          // Capture a frame every 100ms or any interval you'd like
+          const interval = setInterval(() => {
+            if (videoRef.current) {
+              onFrameCaptured(videoRef.current); // Pass video element to parent
+            }
+          }, 100); // 100ms interval to grab frames
+    
+          return () => clearInterval(interval); // Cleanup interval on component unmount
+        }
+      }, [onFrameCaptured]);
+    
+      return <video ref={videoRef} autoPlay playsInline muted />;
+    };
+
+    /*
+    // Function to start recordings
+    const startVideo = () => {
         // Ensure the webcam is active and has a video source
         if (webcamRef.current?.video?.srcObject) {
             const stream = webcamRef.current.video.srcObject as MediaStream; // Get the webcam stream
@@ -43,18 +87,20 @@ const CameraComponent = () => {
             setIsRecording(true); // Update recording state
         }
     };
+  
 
     // Function to stop recording
     const stopRecording = () => {
         mediaRecorder?.stop(); // Stop the media recorder if it exists
         setIsRecording(false); // Update recording state
     };
-
+    */
+   /*
     return (
         <div>
             <h1>Test Camera</h1>
             
-            {/* Webcam component with specified constraints */}
+            {/* Webcam component with specified constraints */ /*}
             <Webcam
                 ref={webcamRef}
                 audio={false}
@@ -64,7 +110,7 @@ const CameraComponent = () => {
                 style={{transform: 'scaleX(-1)'}}
             />
 
-            {/* Button to start/stop recording */}
+            {/* Button to start/stop recording }*/ /*
             <div>
                 <button onClick={isRecording ? stopRecording : startRecording}>
                     {isRecording ? "Stop Recording" : "Start Recording"}
@@ -73,5 +119,6 @@ const CameraComponent = () => {
         </div>
     );
 };
+*/
 
 export default CameraComponent; // Export the component for use in other files

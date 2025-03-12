@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from 'react';
-import CameraFeed from '../../components/client/CameraFeed';
+import CameraFeed from '@/components/client/CameraFeed';
+
 
 export default function AlphabetLesson() {
   const [letter, setLetter] = useState<string | null>(null);
@@ -11,7 +12,12 @@ export default function AlphabetLesson() {
       <h1>ASL Alphabet Lesson</h1>
       <p>Show a sign to your camera, and we'll tell you what letter it is!</p>
 
-      <CameraFeed onPrediction={(predictedLetter) => setLetter(predictedLetter)} />
+      /* Pass the onPrediction prop to CameraFeed */
+      <CameraFeed 
+        targetLetter="A" 
+        onNext={() => console.log('Next button clicked')} 
+        onPrediction={(predictedLetter) => setLetter(predictedLetter)} 
+      />
       
       <div>
         <h2>Prediction:</h2>
