@@ -4,7 +4,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import * as tf from '@tensorflow/tfjs';
 import { getLandmarkData } from '@/utils/getLandmarkData';
 import * as handpose from '@tensorflow-models/handpose';
-import { HandLandmarker, HandLandmarkerResult, HandLandmarkerOptions, WasmFileset, NormalizedLandmark } from '@mediapipe/tasks-vision';
+import { HandLandmarker, HandLandmarkerResult, HandLandmarkerOptions, FilesetResolver } from '@mediapipe/tasks-vision';
 
 
 export default function CameraFeed({ targetLetter , onNext, onPrediction }: { targetLetter: string; onNext: () => void; onPrediction: (predictedLetter: string) => void; }) {
@@ -14,7 +14,6 @@ export default function CameraFeed({ targetLetter , onNext, onPrediction }: { ta
   const [holdTime, setHoldTime] = useState(0);
   const [timerId, setTimerId] = useState<NodeJS.Timeout | null>(null);
   const [handLandmarker, setHandLandmarker] = useState<HandLandmarker | null>(null);
-  //const [landmarks, setLandmarks] = useState<NormalizedLandmark[] | any[]>([]);
 
 
   // This loads the model + calls camera start function
@@ -31,10 +30,11 @@ export default function CameraFeed({ targetLetter , onNext, onPrediction }: { ta
     // Initialize the hand landmarker from @mediapipe/tasks-vision
     const loadHandLandmarker = async () => {
       try {
-        const wasmFileset = await WasmFileset.load('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/hand_landmarker/hand_landmarker_model.tflite');
+        const fileset = await FilesetResolver.forVisionTasks(
+          "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
+        );
         //only detects first detected hand rn. In future, can update to 2 for more complex gestures
-        const handLandmarkerOptions: HandLandmarkerOptions = { numHands: 1 }; 
-        const landmarker = await HandLandmarker.createFromOptions(wasmFileset, handLandmarkerOptions);
+        const landmarker = await HandLandmarker.createFromOptions(fileset, { numHands: 1});
         setHandLandmarker(landmarker);
       } catch (error) {
         console.error('Error loading hand landmarker:', error);
