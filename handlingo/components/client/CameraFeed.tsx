@@ -1,7 +1,8 @@
+"use client"; //client component
+
 import React, { useRef, useEffect, useState } from 'react';
 import * as tf from '@tensorflow/tfjs';
 import { getLandmarkData } from '@/utils/getLandmarkData';
-import CameraComponent from "@/components/client/camera";
 import * as handpose from '@tensorflow-models/handpose';
 import { HandLandmarker, HandLandmarkerResult, HandLandmarkerOptions, WasmFileset, NormalizedLandmark } from '@mediapipe/tasks-vision';
 
@@ -9,31 +10,30 @@ import { HandLandmarker, HandLandmarkerResult, HandLandmarkerOptions, WasmFilese
 export default function CameraFeed({ targetLetter , onNext, onPrediction }: { targetLetter: string; onNext: () => void; onPrediction: (predictedLetter: string) => void; }) {
   const videoRef = useRef(null);
   const [model, setModel] = useState<tf.LayersModel | null>(null); 
-  const [landmarks, setLandmarks] = useState<NormalizedLandmark[] | any[]>([]);
   const [status, setStatus] = useState('red'); // 'red', 'yellow', 'green'
   const [holdTime, setHoldTime] = useState(0);
   const [timerId, setTimerId] = useState<NodeJS.Timeout | null>(null);
   const [handLandmarker, setHandLandmarker] = useState<HandLandmarker | null>(null);
+  //const [landmarks, setLandmarks] = useState<NormalizedLandmark[] | any[]>([]);
 
 
   // This loads the model + calls camera start function
   useEffect(() => {
     const loadModel = async () => {
-      const model = await tf.loadLayersModel('file://model/tfjs_model/model.json'); //might need to update model path
-      setModel(model); 
+      try {
+        const loadedModel = await tf.loadLayersModel('file://model/tfjs_model/model.json'); //might need to update model path
+        setModel(loadedModel);
+      } catch (error) {
+        console.error('Error loading model:', error);
+      }
     };
-
-    loadModel();
 
     // Initialize the hand landmarker from @mediapipe/tasks-vision
     const loadHandLandmarker = async () => {
       try {
         const wasmFileset = await WasmFileset.load('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/hand_landmarker/hand_landmarker_model.tflite');
-        
-        const handLandmarkerOptions: HandLandmarkerOptions = {
-          numHands: 1, 
-        };
-
+        //only detects first detected hand rn. In future, can update to 2 for more complex gestures
+        const handLandmarkerOptions: HandLandmarkerOptions = { numHands: 1 }; 
         const landmarker = await HandLandmarker.createFromOptions(wasmFileset, handLandmarkerOptions);
         setHandLandmarker(landmarker);
       } catch (error) {
@@ -41,6 +41,7 @@ export default function CameraFeed({ targetLetter , onNext, onPrediction }: { ta
       }
     };
 
+    loadModel();
     loadHandLandmarker();
   }, []);
 
@@ -71,24 +72,20 @@ export default function CameraFeed({ targetLetter , onNext, onPrediction }: { ta
 
 
   // camera feed -> get landmarks -> converts to input array for model -> gets model prediction
-  const processFrame = async (video: HTMLVideoElement) => {
-    if (!model || !video || !handLandmarker) return;
+  const processFrame = async () => {
+    if (!model || !videoRef.current || !handLandmarker) return;
 
     // Detect hand landmarks using Mediapipe HandLandmarker
+    const video = videoRef.current;
     const result: HandLandmarkerResult = await handLandmarker.detect(video);
     
     // give landmaks to getLandmarkData to get input for model
     if (result && result.landmarks.length > 0) {
-      const lm = result.landmarks[0];
-      setLandmarks(lm);
-
-      // Pass the detected result to getLandmarkData
-      const landmarkData = getLandmarkData(result);
-
-      // give landmarkdata to model (if not null)
+      const landmarkData = getLandmarkData(result, 640, 360); //numbers are video dimensions from camera.tsx i was too lazy to grab the variable (cass)
       let prediction = null;
       let predictedLetter = null;
 
+      // give landmarkdata to model (if not null)
       if (landmarkData) {
         // model predict
         prediction = model.predict(landmarkData) as tf.Tensor; 
@@ -132,19 +129,17 @@ export default function CameraFeed({ targetLetter , onNext, onPrediction }: { ta
   };
 
   useEffect(() => {
-    const interval = setInterval(processFrame, 100);
+    const interval = setInterval(processFrame, 100); //change the 100ms if needed
     return () => clearInterval(interval);
-  }, [model]);
+  }, [model, handLandmarker]);
 
   return (
     <div>
-      <video ref={videoRef} autoPlay playsInline muted />
+      <video ref={videoRef} autoPlay playsInline muted width={640} height={360} />
       <div>
         <h2>Status: {status.toUpperCase()}</h2>
         {status === 'yellow' && <p>Hold for {3 - holdTime}s...</p>}
-        {status === 'green' && (
-          <button onClick={handleNext}>Next</button>
-        )}
+        {status === 'green' && <button onClick={onNext}>Next</button>}
       </div>
     </div>
   );

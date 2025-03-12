@@ -12,7 +12,7 @@ export default function AlphabetLesson() {
       <h1>ASL Alphabet Lesson</h1>
       <p>Show a sign to your camera, and we'll tell you what letter it is!</p>
 
-      /* Pass the onPrediction prop to CameraFeed */
+      {/* Pass the onPrediction prop to CameraFeed */}
       <CameraFeed 
         targetLetter="A" 
         onNext={() => console.log('Next button clicked')} 

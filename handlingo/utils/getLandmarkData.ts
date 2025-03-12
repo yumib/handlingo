@@ -6,10 +6,12 @@ import * as tf from '@tensorflow/tfjs';
  * Returns a tensor representing the landmarks (flattened), as well as the CSV formatted string.
  * 
  * @param result The hand landmarker detection result.
- * @returns An object containing the tensor.
+ * @param imageWidth The width of the input image (needed for normalization).
+ * @param imageHeight The height of the input image (needed for normalization).
+ * @returns A tensor representing the normalized landmarks, or null if invalid.
  */
 
-export const getLandmarkData = (result: HandLandmarkerResult): tf.Tensor | null => {
+export const getLandmarkData = (result: HandLandmarkerResult, imageWidth: number, imageHeight: number): tf.Tensor | null => {
   if (!result.landmarks || result.landmarks.length === 0) {
     return null;
   }
@@ -17,11 +19,25 @@ export const getLandmarkData = (result: HandLandmarkerResult): tf.Tensor | null 
   // Only process the first detected hand (since you only need one)
   const hand = result.landmarks[0];
 
-  // Flatten the [x, y] pairs into a single comma-separated string
-  const flattenedData = hand
-    .map((point) => [point.x, point.y]) // get x, y values only
-    .flat(); // flatten to make it a 1D array
+  // ensure 21 landmarks (for consistency)
+  if (hand.length !== 21) {
+    console.warn("Unexpected number of hand landmarks:", hand.length);
+    return null;
+  }
 
-  // Return data as a tensor 
-  return tf.tensor([flattenedData]);
+  // Flatten the [x, y] pairs into a single comma-separated string
+  const normalizedData = hand
+    .map((point) => [point.x / imageWidth, point.y / imageHeight]) //normalize using image dimensions
+    .flat(); // flatten into a 1D array
+
+  // Create the tensor
+  const tensor = tf.tensor([normalizedData]);
+
+  // Dispose of old tensors to free memory
+  tf.tidy(() => {
+    tensor.clone(); 
+  });
+
+  // Return tensor 
+  return tensor;
 };
