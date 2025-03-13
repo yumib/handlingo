@@ -5,6 +5,7 @@ import * as tf from '@tensorflow/tfjs';
 import { getLandmarkData } from '@/utils/getLandmarkData';
 import * as handpose from '@tensorflow-models/handpose';
 import { HandLandmarker, HandLandmarkerResult, HandLandmarkerOptions, FilesetResolver } from '@mediapipe/tasks-vision';
+import CameraComponent from '@/components/client/camera';
 
 
 export default function CameraFeed({ targetLetter , onNext, onPrediction }: { targetLetter: string; onNext: () => void; onPrediction: (predictedLetter: string) => void; }) {
@@ -159,7 +160,8 @@ export default function CameraFeed({ targetLetter , onNext, onPrediction }: { ta
 
   return (
     <div>
-      <video ref={videoRef} autoPlay playsInline muted width={640} height={360} />
+      {/* <video ref={videoRef} autoPlay playsInline muted width={640} height={360} /> */}
+      <CameraComponent onFrameCaptured={(frame) => processFrame()}/>
       <div>
         <h2>Status: {status.toUpperCase()}</h2>
         {status === 'yellow' && <p>Hold for {3 - holdTime}s...</p>}

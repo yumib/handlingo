@@ -6,7 +6,7 @@
 // Specifies that this component runs on the client side
 "use client"; 
 
-import React, { useRef, useState, useEffect } from "react"; 
+import React, { useRef, useEffect } from "react"; 
 import Webcam from "react-webcam"; 
 
 // Define video constraints (resolution and facing mode)
@@ -16,7 +16,13 @@ const videoConstraints = {
     facingMode: "user", // Uses the front camera
 };
 
-const CameraComponent = ({ onFrameCaptured }: { onFrameCaptured: (frame: HTMLVideoElement) => void }) => {
+type CameraComponentProps = {
+  onFrameCaptured: (frame: HTMLVideoElement) => void; // Callback to send frames up
+  width?: number;
+  height?: number;
+};
+
+const CameraComponent = ({ onFrameCaptured, width = 640, height = 360 }: CameraComponentProps) => {
     // Refs to store webcam and video elements
     const webcamRef = useRef<Webcam>(null); 
     const videoRef = useRef<HTMLVideoElement>(null);
