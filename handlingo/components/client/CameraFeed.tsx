@@ -6,10 +6,12 @@ import { getLandmarkData } from '@/utils/getLandmarkData';
 import * as handpose from '@tensorflow-models/handpose';
 import { HandLandmarker, HandLandmarkerResult, HandLandmarkerOptions, FilesetResolver } from '@mediapipe/tasks-vision';
 import CameraComponent from '@/components/client/camera';
+import { Fascinate } from 'next/font/google';
 
 
 export default function CameraFeed({ targetLetter , onNext, onPrediction }: { targetLetter: string; onNext: () => void; onPrediction: (predictedLetter: string) => void; }) {
-  const videoRef = useRef<HTMLVideoElement| null>(null);
+  let videoElement:HTMLVideoElement|null=null;
+  const videoRef = useRef<HTMLVideoElement| null>(videoElement);
   const [model, setModel] = useState<tf.LayersModel | null>(null); 
   const [status, setStatus] = useState('red'); // 'red', 'yellow', 'green'
   const [holdTime, setHoldTime] = useState(0);
@@ -17,13 +19,15 @@ export default function CameraFeed({ targetLetter , onNext, onPrediction }: { ta
   const [handLandmarker, setHandLandmarker] = useState<HandLandmarker | null>(null);
   const [isVideoReady, setIsVideoReady]= useState(false);//tracks if the video is ready to be used
 
-
+  
   // This loads the model + calls camera start function
   useEffect(() => {
     const loadModel = async () => {
       try {
+        console.log("the model should be loaded");
         const loadedModel = await tf.loadLayersModel('/tfjs_model/model.json'); //might need to update model path
         setModel(loadedModel);
+        console.log("the model is loaded");
       } catch (error) {
         console.error('Error loading model:', error);
       }
@@ -41,7 +45,7 @@ export default function CameraFeed({ targetLetter , onNext, onPrediction }: { ta
           baseOptions:{
             modelAssetPath:'https://storage.googleapis.com/mediapipe-assets/hand_landmarker.task',
           },
-          runningMode: 'IMAGE',
+          runningMode: 'VIDEO',
           numHands: 1});
         setHandLandmarker(landmarker);
         console.log("It worked");
@@ -81,23 +85,49 @@ export default function CameraFeed({ targetLetter , onNext, onPrediction }: { ta
 
 
   // camera feed -> get landmarks -> converts to input array for model -> gets model prediction
-  const processFrame = async () => {
-    if (!model || !videoRef.current || !handLandmarker) return;
+  const processFrame = async (videoElement:HTMLVideoElement|null) => {
+    if (!model || !videoElement || !handLandmarker)
+      { 
+        console.log("the if stops us");
+        if(!model)
+          {
+            console.log("the model stops us");
+          }
+          if(!videoElement)
+          {
+            console.log("the video stops us");
+          }
+          if(!handLandmarker)
+          {
+            console.log("the handLandmarker stops us");
+          }
+        return;
+      };
     try{
     // Detect hand landmarks using Mediapipe HandLandmarker
-    const video = videoRef.current;
-    const result: HandLandmarkerResult = handLandmarker.detect(video);
+    const video = videoElement;
+    const result: HandLandmarkerResult = handLandmarker.detectForVideo(video,performance.now()); //issue
+    // console.log("HandLandmarker result:", result);
+    if (!result.landmarks || result.landmarks.length === 0){
+      console.warn("No hands detected, skipping frame.");
+      return;// exit early to prevent crashing
+    }
+    
     
     // give landmaks to getLandmarkData to get input for model
     if (result && result.landmarks.length > 0) {
       const landmarkData = getLandmarkData(result, 640, 360); //numbers are video dimensions from camera.tsx i was too lazy to grab the variable (cass)
+
+      
       let prediction = null;
       let predictedLetter = null;
 
       // give landmarkdata to model (if not null)
-      if (landmarkData) {
+      if (landmarkData && model) {
         // model predict
-        prediction = model.predict(landmarkData) as tf.Tensor; 
+        const inputArray = Array.isArray(landmarkData) ? landmarkData : landmarkData.arraySync();
+        const inputTensor = tf.tensor(inputArray).reshape([42, 3]);
+        prediction = model.predict(inputTensor) as tf.Tensor; 
 
         // convert output tensor to array
         prediction =  prediction.dataSync() as Float32Array;
@@ -146,22 +176,29 @@ export default function CameraFeed({ targetLetter , onNext, onPrediction }: { ta
     {
       const video =videoRef.current;
       video.oncanplay=()=>{setIsVideoReady(true);}
+      video.onloadeddata = () => {
+        setIsVideoReady(true);
+      }
+      video.onerror=()=>{
+        console.error("Error loading video");
+        setIsVideoReady(false);
+      }
     }
   },[]);
   useEffect(() => {
     const interval = setInterval(()=>{
       if(handLandmarker&&model&&isVideoReady)
       {
-        processFrame();
-      }}); //change the 100ms if needed
+        processFrame(videoRef.current);
+      }},100); //change the 100ms if needed
     return () => clearInterval(interval);
-  }, [model, handLandmarker,isVideoReady]); //not sure if need to dont need handLandmarker
+  }, [model, handLandmarker,isVideoReady]); //not sure if need or dont need handLandmarker
 
 
   return (
     <div>
-      {/* <video ref={videoRef} autoPlay playsInline muted width={640} height={360} /> */}
-      <CameraComponent onFrameCaptured={(frame) => processFrame()}/>
+      {/*<video ref={videoRef} autoPlay playsInline muted width={640} height={360} />*/}
+      <CameraComponent onFrameCaptured={(videoElement) => processFrame(videoElement)}/>
       <div>
         <h2>Status: {status.toUpperCase()}</h2>
         {status === 'yellow' && <p>Hold for {3 - holdTime}s...</p>}
