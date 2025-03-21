@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import LogoutButton from './logoutButton';
+import ClientOnly from '../client/clientOnly'; // Import the ClientOnly wrapper
 
 const Navbar = () => {
   return (
@@ -29,7 +30,9 @@ const Navbar = () => {
           <Link href="/profile" style={{ color: '#fff' }}>Profile</Link>
         </li>
         <li>
-          <LogoutButton />
+          <ClientOnly>
+            <LogoutButton />
+          </ClientOnly>
         </li>
       </ul>
     </nav>

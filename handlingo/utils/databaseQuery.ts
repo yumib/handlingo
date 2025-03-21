@@ -28,8 +28,8 @@ export async function getUserByUsername(username: string) {
         return null;
     }
 
-    console.log("User result:", data);
-    console.log("user email: ", data.email)
+    // console.log("User result:", data);
+    // console.log("user email: ", data.email)
     return data;
 }
 
@@ -98,6 +98,7 @@ export async function getInternalUserByEmail(email: string) {
         .from("User_Table") // Your hosted user table
         .select("*") // Select relevant fields
         .eq("email", email) // Match email from auth
+        .single()
 
     if (error) {
         console.error("Error fetching user from User_Table:", error);
@@ -105,4 +106,76 @@ export async function getInternalUserByEmail(email: string) {
     }
     
     return data; // Returns the internal user object
+}
+
+// PROFILE QUERIES:
+
+// Update user data (excluding password and email updates in auth table)
+export async function updateUserProfile(email: string, updatedFields: Record<string, any>) {
+    const supabase = await initializeSupabase(); // Make sure Supabase is ready
+
+    if (!supabase) {
+        throw new Error("Supabase client failed to initialize");
+    }
+    const { data, error } = await supabase
+        .from("User_Table") // Adjust table name if needed
+        .update(updatedFields)
+        .eq("email", email);
+
+    if (error) {
+        console.error("Error updating user profile:", error);
+        return error;
+    }
+    return null;
+}
+
+// Update Supabase Auth email and User Table email
+export async function updateUserEmail(newEmail: string, oldEmail: string) {
+    const supabase = await initializeSupabase(); // Initialize Supabase
+
+    if (!supabase) {
+        throw new Error("Supabase client failed to initialize");
+    }
+
+    try {
+        // Step 1: Update email in the auth table (if email is part of updatedFields)
+        const { error } = await supabase.auth.updateUser({ email: newEmail });
+
+        if (error) {
+            throw new Error("Error updating email in auth table: ", error);
+        }
+
+        // Step 2: Update the User_Table (excluding password & email since email is updated already)
+        const { data, error: dbError } = await supabase
+            .from('User_Table')
+            .update({ email: newEmail })
+            .eq('email', oldEmail);
+
+        if (dbError) {
+            throw new Error("Error updating user profile in User_Table: " + dbError.message);
+        }
+
+        console.log("User profile updated successfully in both auth and User_Table");
+        return data;
+
+    } catch (error) {
+        console.error("Error updating user profile:", error);
+        return { error: error };
+    }
+}
+
+// Update Supabase auth password
+export async function updateUserAuthPassword(newPassword: string) {
+    const supabase = await initializeSupabase(); // Make sure Supabase is ready
+
+    if (!supabase) {
+        throw new Error("Supabase client failed to initialize");
+    }
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+    if (error) {
+        console.error("Error updating auth password:", error);
+        return error;
+    }
+    return null;
 }

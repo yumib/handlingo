@@ -4,7 +4,36 @@ import { encodedRedirect } from "@/utils/utils";
 import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { getUserByUsername, createNewUser } from "@/utils/databaseQuery";
+
+// export async function getUserSession() {
+//   // Access cookies in the server-side context
+//   const cookieStore = await cookies();
+
+//   // Get the session token from cookies (e.g., using 'sb-access-token')
+//   const accessToken = cookieStore.get('sb-qqtnelaznnlkzntopfwd-auth-token')?.value;
+//   if (!accessToken) {
+//     // If no token, redirect to login
+//     return redirect("/sign-in");
+//   }
+
+//   // Initialize the Supabase client with the access token from cookies
+//   const supabase = createServerActionClient({ cookies: () => Promise.resolve(cookieStore)});
+
+//   // Retrieve session using the access token
+//   const { data: { session }, error } = await supabase.auth.getSession();
+//   console.log('here5')
+//   console.log(session)
+//   // Handle errors or session not found
+//   if (error || !session) {
+//     console.log(session)
+//     return redirect("/sign-in"); // Handle session invalidation
+//   }
+
+//   // Return the user from the session
+//   return session.user;
+// }
 
 export const signUpAction = async (formData: FormData) => {
   const fname = formData.get("firstName")?.toString();
@@ -71,8 +100,8 @@ export const signInAction = async (formData: FormData) => {
   if (error) {
     return encodedRedirect("error", "/", error.message);
   }
-
-  return redirect("/dashboard");
+  revalidatePath('/', 'layout')
+  redirect("/dashboard");
 };
 
 export const forgotPasswordAction = async (formData: FormData) => {
