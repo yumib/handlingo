@@ -27,7 +27,7 @@ export default function CameraFeed({ targetLetter , onNext, onPrediction }: { ta
         console.log("the model should be loaded");
         const loadedModel = await tf.loadLayersModel('/tfjs_model/model.json'); //might need to update model path
         setModel(loadedModel);
-        console.log("the model is loaded");
+        console.log("the model is loaded",loadedModel);
       } catch (error) {
         console.error('Error loading model:', error);
       }
@@ -88,21 +88,19 @@ export default function CameraFeed({ targetLetter , onNext, onPrediction }: { ta
   const processFrame = async (videoElement:HTMLVideoElement|null) => {
     if (!model || !videoElement || !handLandmarker)
       { 
-        console.log("the if stops us");
-        if(!model)
-          {
-            console.log("the model stops us");
-          }
-          if(!videoElement)
-          {
-            console.log("the video stops us");
-          }
-          if(!handLandmarker)
-          {
-            console.log("the handLandmarker stops us");
-          }
+        console.log("Model:", model ? "Loaded" : "Not loaded");
+        console.log("Video Element:", videoElement ? "Present" : "Not present");
+        console.log("HandLandmarker:", handLandmarker ? "Loaded" : "Not loaded");
         return;
       };
+      if (videoElement.videoWidth === 0 || videoElement.videoHeight === 0) {
+        console.error("Invalid video frame: width or height is 0.");
+        return;
+      }
+      if (!videoElement || videoElement.readyState < 2) {
+        console.error("Video not ready yet.");
+        return;
+      }
     try{
     // Detect hand landmarks using Mediapipe HandLandmarker
     const video = videoElement;
@@ -112,8 +110,6 @@ export default function CameraFeed({ targetLetter , onNext, onPrediction }: { ta
       console.warn("No hands detected, skipping frame.");
       return;// exit early to prevent crashing
     }
-    
-    
     // give landmaks to getLandmarkData to get input for model
     if (result && result.landmarks.length > 0) {
       const landmarkData = getLandmarkData(result, 640, 360); //numbers are video dimensions from camera.tsx i was too lazy to grab the variable (cass)
@@ -176,9 +172,7 @@ export default function CameraFeed({ targetLetter , onNext, onPrediction }: { ta
     {
       const video =videoRef.current;
       video.oncanplay=()=>{setIsVideoReady(true);}
-      video.onloadeddata = () => {
-        setIsVideoReady(true);
-      }
+      video.onloadeddata = () => {setIsVideoReady(true);}
       video.onerror=()=>{
         console.error("Error loading video");
         setIsVideoReady(false);
