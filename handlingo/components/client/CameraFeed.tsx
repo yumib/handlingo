@@ -10,8 +10,7 @@ import { Fascinate } from 'next/font/google';
 
 
 export default function CameraFeed({ targetLetter , onNext, onPrediction }: { targetLetter: string; onNext: () => void; onPrediction: (predictedLetter: string) => void; }) {
-  let videoElement:HTMLVideoElement|null=null;
-  const videoRef = useRef<HTMLVideoElement| null>(videoElement);
+  //const videoRef = useRef<HTMLVideoElement| null>(null);
   const [model, setModel] = useState<tf.LayersModel | null>(null); 
   const [status, setStatus] = useState('red'); // 'red', 'yellow', 'green'
   const [holdTime, setHoldTime] = useState(0);
@@ -32,6 +31,7 @@ export default function CameraFeed({ targetLetter , onNext, onPrediction }: { ta
         console.error('Error loading model:', error);
       }
     };
+
 
     // Initialize the hand landmarker from @mediapipe/tasks-vision
     const loadHandLandmarker = async () => {
@@ -58,6 +58,36 @@ export default function CameraFeed({ targetLetter , onNext, onPrediction }: { ta
     loadHandLandmarker();
   }, []);
 
+  // This loads the model + calls camera start function
+  // useEffect(() => {
+  //   const startCamera = async () => {
+  //     try {
+  //       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+  //       if (videoRef.current) {
+  //         videoRef.current.srcObject = stream;
+  //         console.log("The camera is streaming");
+  //       }
+  //     } catch (error) {
+  //       console.error("Error accessing camera:", error);
+  //     }
+  //   };
+
+  //   startCamera();
+  // }, []);
+
+  // //moved these up here so they get read before processframe
+  // useEffect(()=>{
+  //   if(videoRef.current)
+  //   {
+  //     const video =videoRef.current;
+  //     video.oncanplay=()=>{setIsVideoReady(true);}
+  //     video.onloadeddata = () => {setIsVideoReady(true);}
+  //     video.onerror=()=>{
+  //       console.error("Error loading video");
+  //       setIsVideoReady(false);
+  //     }
+  //   }
+  // },[]);
 
   // timer to make sure user is actually signing correctly & not just accident
   const startHoldTimer = () => {
@@ -82,30 +112,29 @@ export default function CameraFeed({ targetLetter , onNext, onPrediction }: { ta
     setHoldTime(0);
     setStatus('red');
   };
-
-
+  
   // camera feed -> get landmarks -> converts to input array for model -> gets model prediction
-  const processFrame = async (videoElement:HTMLVideoElement|null) => {
-    if (!model || !videoElement || !handLandmarker)
+  const processFrame = async (videoElement:HTMLVideoElement) => {
+    if (!model || !handLandmarker)
       { 
         console.log("Model:", model ? "Loaded" : "Not loaded");
-        console.log("Video Element:", videoElement ? "Present" : "Not present");
+        //console.log("Video Reference:", videoRef.current ? "Loaded" : "Not loaded");
         console.log("HandLandmarker:", handLandmarker ? "Loaded" : "Not loaded");
         return;
       };
-      if (videoElement.videoWidth === 0 || videoElement.videoHeight === 0) {
+      if (!videoElement || videoElement.videoWidth === 0 || videoElement.videoHeight === 0) {
         console.error("Invalid video frame: width or height is 0.");
         return;
       }
-      if (!videoElement || videoElement.readyState < 2) {
+      if (videoElement.readyState < 2) {
         console.error("Video not ready yet.");
         return;
       }
     try{
     // Detect hand landmarks using Mediapipe HandLandmarker
-    const video = videoElement;
-    const result: HandLandmarkerResult = handLandmarker.detectForVideo(video,performance.now()); //issue
-    // console.log("HandLandmarker result:", result);
+    //const video = videoElement;
+    const result: HandLandmarkerResult = handLandmarker.detectForVideo(videoElement,performance.now()); //issue
+    console.log("HandLandmarker result:", result.landmarks);
     if (!result.landmarks || result.landmarks.length === 0){
       console.warn("No hands detected, skipping frame.");
       return;// exit early to prevent crashing
@@ -113,7 +142,18 @@ export default function CameraFeed({ targetLetter , onNext, onPrediction }: { ta
     // give landmaks to getLandmarkData to get input for model
     if (result && result.landmarks.length > 0) {
       const landmarkData = getLandmarkData(result, 640, 360); //numbers are video dimensions from camera.tsx i was too lazy to grab the variable (cass)
+      if(!landmarkData)
+      {
+        console.warn("LandmarkData is emoty");
+        return;
+      }
 
+
+      // if(landmarkData instanceof tf.Tensor && landmarkData.size !== 21*3)
+      // {
+      //   console.error(`the data is the wrong size we need ${21*3}, but got ${landmarkData.size}`);
+      //   return;
+      // }
       
       let prediction = null;
       let predictedLetter = null;
@@ -122,7 +162,7 @@ export default function CameraFeed({ targetLetter , onNext, onPrediction }: { ta
       if (landmarkData && model) {
         // model predict
         const inputArray = Array.isArray(landmarkData) ? landmarkData : landmarkData.arraySync();
-        const inputTensor = tf.tensor(inputArray).reshape([42, 3]);
+        const inputTensor = tf.tensor(inputArray).reshape([1, 42]);
         prediction = model.predict(inputTensor) as tf.Tensor; 
 
         // convert output tensor to array
@@ -167,32 +207,23 @@ export default function CameraFeed({ targetLetter , onNext, onPrediction }: { ta
     resetHoldTimer();
     onNext();
   };
-  useEffect(()=>{
-    if(videoRef.current)
-    {
-      const video =videoRef.current;
-      video.oncanplay=()=>{setIsVideoReady(true);}
-      video.onloadeddata = () => {setIsVideoReady(true);}
-      video.onerror=()=>{
-        console.error("Error loading video");
-        setIsVideoReady(false);
-      }
-    }
-  },[]);
+
   useEffect(() => {
     const interval = setInterval(()=>{
-      if(handLandmarker&&model&&isVideoReady)
+      if(handLandmarker && model && isVideoReady)
       {
-        processFrame(videoRef.current);
+        const video =document.querySelector("video")
+        if(video){
+        processFrame(video);
+        }
       }},100); //change the 100ms if needed
     return () => clearInterval(interval);
   }, [model, handLandmarker,isVideoReady]); //not sure if need or dont need handLandmarker
 
-
   return (
     <div>
       {/*<video ref={videoRef} autoPlay playsInline muted width={640} height={360} />*/}
-      <CameraComponent onFrameCaptured={(videoElement) => processFrame(videoElement)}/>
+      <CameraComponent onFrameCaptured={processFrame}/>
       <div>
         <h2>Status: {status.toUpperCase()}</h2>
         {status === 'yellow' && <p>Hold for {3 - holdTime}s...</p>}

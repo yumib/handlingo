@@ -25,49 +25,64 @@ type CameraComponentProps = {
 const CameraComponent = ({ onFrameCaptured, width = 640, height = 360 }: CameraComponentProps) => {
     // Refs to store webcam and video elements
     const webcamRef = useRef<Webcam>(null); 
-    const videoRef = useRef<HTMLVideoElement>(null);
+    //const videoRef = useRef<HTMLVideoElement>(null);
 
     // start camera
     useEffect(() => {
-        const startVideo = async () => {
-          try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            if (videoRef.current) {
-              videoRef.current.srcObject = stream;
-            }
-          } catch (err) {
-            console.error("Error accessing camera: ", err);
-          }
-        };
+      if (!webcamRef.current) return;
+  
+      const captureFrame = () => {
+        const video = webcamRef.current?.video;
+        if (video) {
+          onFrameCaptured(video);
+        }
+      };
+  
+      const interval = setInterval(captureFrame, 100);
+      return () => clearInterval(interval);
+    }, [onFrameCaptured]);
+  
+    return <Webcam ref={webcamRef} videoConstraints={videoConstraints} width={width} height={height} />;
+  };
+        // const startVideo = async () => {
+        //   try {
+        //     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        //     if (videoRef.current) {
+        //       videoRef.current.srcObject = stream;
+        //     }
+        //   } catch (err) {
+        //     console.error("Error accessing camera: ", err);
+        //   }
+        // };
     
-        startVideo();
+        // startVideo();
 
-        return () => {
-            // Cleanup video stream on component unmount
-            if (videoRef.current && videoRef.current.srcObject) {
-              const stream = videoRef.current.srcObject as MediaStream;
-              const tracks = stream.getTracks();
-              tracks.forEach(track => track.stop());
-            }
-          };
-    }, []);
+        // return () => {
+        //     // Cleanup video stream on component unmount
+        //     if (videoRef.current && videoRef.current.srcObject) {
+        //       const stream = videoRef.current.srcObject as MediaStream;
+        //       const tracks = stream.getTracks();
+        //       tracks.forEach(track => track.stop());
+        //     }
+        //   };
+    // }, []);
 
     // capture frames
-    useEffect(() => {
-        if (videoRef.current) {
-          // Capture a frame every 100ms or any interval you'd like
-          const interval = setInterval(() => {
-            if (videoRef.current) {
-              onFrameCaptured(videoRef.current); // Pass video element to parent
-            }
-          }, 100); // 100ms interval to grab frames
+    // useEffect(() => {
+    //     if (videoRef.current) {
+    //       // Capture a frame every 100ms or any interval you'd like
+    //       const interval = setInterval(() => {
+    //         if (videoRef.current) {
+    //           onFrameCaptured(videoRef.current); // Pass video element to parent
+    //         }
+    //       }, 100); // 100ms interval to grab frames
     
-          return () => clearInterval(interval); // Cleanup interval on component unmount
-        }
-      }, [onFrameCaptured]);
+    //       return () => clearInterval(interval); // Cleanup interval on component unmount
+    //     }
+    //   }, [onFrameCaptured]);
     
-      return <video ref={videoRef} autoPlay playsInline muted />;
-    };
+    //   return <video ref={videoRef} autoPlay playsInline muted />;
+    // };
 
     /*
     // Function to start recordings

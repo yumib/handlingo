@@ -29,7 +29,6 @@ export const getLandmarkData = (result: HandLandmarkerResult, imageWidth: number
   const normalizedData = hand
     .map((point) => [point.x / imageWidth, point.y / imageHeight]) //normalize using image dimensions
     .flat(); // flatten into a 1D array
-
   // Create the tensor
   const tensor = tf.tensor([normalizedData]);
 
