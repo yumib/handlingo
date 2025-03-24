@@ -134,7 +134,7 @@ export default function CameraFeed({ targetLetter , onNext, onPrediction }: { ta
     // Detect hand landmarks using Mediapipe HandLandmarker
     //const video = videoElement;
     const result: HandLandmarkerResult = handLandmarker.detectForVideo(videoElement,performance.now()); //issue
-    console.log("HandLandmarker result:", result.landmarks);
+    //console.log("HandLandmarker result:", result.landmarks);
     if (!result.landmarks || result.landmarks.length === 0){
       console.warn("No hands detected, skipping frame.");
       return;// exit early to prevent crashing
@@ -148,13 +148,6 @@ export default function CameraFeed({ targetLetter , onNext, onPrediction }: { ta
         return;
       }
 
-
-      // if(landmarkData instanceof tf.Tensor && landmarkData.size !== 21*3)
-      // {
-      //   console.error(`the data is the wrong size we need ${21*3}, but got ${landmarkData.size}`);
-      //   return;
-      // }
-      
       let prediction = null;
       let predictedLetter = null;
 
