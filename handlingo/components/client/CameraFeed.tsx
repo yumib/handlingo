@@ -222,7 +222,8 @@ export default function CameraFeed({ targetLetter, onNext, onPrediction }: { tar
           processFrame(video);
         }
       }
-    }, 100); //change the 100ms if needed
+    },500); //change the 100ms if needed
+    //we changed it to 500ms since it made it more accurate
     return () => clearInterval(interval);
   }, [model, handLandmarker, isVideoReady]); //not sure if need or dont need handLandmarker
 
