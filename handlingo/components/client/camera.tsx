@@ -20,6 +20,7 @@ type CameraComponentProps = {
   onFrameCaptured: (frame: HTMLVideoElement) => void; // Callback to send frames up
   width?: number;
   height?: number;
+  mirror?: true;
 };
 
 const CameraComponent = ({ onFrameCaptured, width = 640, height = 360 }: CameraComponentProps) => {
