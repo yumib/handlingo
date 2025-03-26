@@ -7,13 +7,15 @@
     "start": "next start"
   },
   "dependencies": {
+    "@mediapipe/tasks-vision": "^0.10.22-rc.20250304",
     "@radix-ui/react-checkbox": "^1.1.1",
     "@radix-ui/react-dropdown-menu": "^2.1.1",
     "@radix-ui/react-label": "^2.1.0",
     "@radix-ui/react-slot": "^1.1.0",
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "latest",
-    "@tensorflow/tfjs-node": "^4.22.0",
+    "@tensorflow-models/handpose": "^0.0.7",
+    "@tensorflow/tfjs": "^3.21.0",
     "autoprefixer": "10.4.20",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
@@ -21,8 +23,8 @@
     "next": "latest",
     "next-themes": "^0.4.3",
     "prettier": "^3.3.3",
-    "react": "19.0.0",
-    "react-dom": "19.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "react-webcam": "^7.2.0"
   },
   "devDependencies": {
