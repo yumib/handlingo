@@ -67,3 +67,16 @@
     @apply bg-background text-foreground;
   }
 }
+
+input {
+  background-color: white; /* Or any color of your choice */
+  color: black; /* Or the text color you want */
+  border: 1px solid #ccc; /* Or adjust the border style */
+  display: flex;
+  margin-bottom: 20px;
+}
+
+input:focus {
+  outline: none;
+  border-color: #4a90e2; /* Or any focus border color */
+}

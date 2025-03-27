@@ -4,9 +4,42 @@ import { encodedRedirect } from "@/utils/utils";
 import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { getUserByUsername, createNewUser } from "@/utils/databaseQuery";
 
+// ATTEMPT TO USE COOKIES / SESSIONS
+// export async function getUserSession() {
+//   // Access cookies in the server-side context
+//   const cookieStore = await cookies();
+
+//   // Get the session token from cookies (e.g., using 'sb-access-token')
+//   const accessToken = cookieStore.get('sb-qqtnelaznnlkzntopfwd-auth-token')?.value;
+//   if (!accessToken) {
+//     // If no token, redirect to login
+//     return redirect("/sign-in");
+//   }
+
+//   // Initialize the Supabase client with the access token from cookies
+//   const supabase = createServerActionClient({ cookies: () => Promise.resolve(cookieStore)});
+
+//   // Retrieve session using the access token
+//   const { data: { session }, error } = await supabase.auth.getSession();
+//   console.log('here5')
+//   console.log(session)
+//   // Handle errors or session not found
+//   if (error || !session) {
+//     console.log(session)
+//     return redirect("/sign-in"); // Handle session invalidation
+//   }
+
+//   // Return the user from the session
+//   return session.user;
+// }
+
+
 export const signUpAction = async (formData: FormData) => {
+
+  // converts sent data to strings
   const fname = formData.get("firstName")?.toString();
   const lname = formData.get("lastName")?.toString();
   const email = formData.get("email")?.toString();
@@ -25,6 +58,7 @@ export const signUpAction = async (formData: FormData) => {
     );
   }
 
+  // db query to create new user on User_Table in file ./utils/databaseQuery.ts
   const {success, data} = await createNewUser(fname, lname, email, username, password);
   
   if (success == false) {
@@ -32,6 +66,7 @@ export const signUpAction = async (formData: FormData) => {
     return encodedRedirect("error", "/sign-up", "Not able to add user to User_Table");
   }
 
+  // creates new user on Auth table
   const { error } = await supabase.auth.signUp({
     email,
     password,
@@ -53,16 +88,20 @@ export const signUpAction = async (formData: FormData) => {
 };
 
 export const signInAction = async (formData: FormData) => {
+
+  // gets info from form 
   const username = formData.get("username") as string;
   const password = formData.get("password") as string;
   const supabase = await createClient();
 
+  // db query to find user on User_Table in file ./utils/databaseQuery.ts
   const user = await getUserByUsername(username);
 
   if (!user) {
     return encodedRedirect("error", "/sign-in", "User not found or not authorized.");
   }
 
+  // signs in user through Auth table
   const { error } = await supabase.auth.signInWithPassword({
     email: user.email,
     password,
@@ -71,10 +110,12 @@ export const signInAction = async (formData: FormData) => {
   if (error) {
     return encodedRedirect("error", "/", error.message);
   }
-
-  return redirect("/dashboard");
+  // if authenticaed go to dashboard page
+  revalidatePath('/', 'layout')
+  redirect("/dashboard");
 };
 
+// FUTURE WORK, NOT SET UP YET
 export const forgotPasswordAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
   const supabase = await createClient();
@@ -109,6 +150,7 @@ export const forgotPasswordAction = async (formData: FormData) => {
   );
 };
 
+// FUTURE WORK, NOT SET UP YET
 export const resetPasswordAction = async (formData: FormData) => {
   const supabase = await createClient();
 
