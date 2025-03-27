@@ -7,6 +7,7 @@ import Link from "next/link";
 import { SmtpMessage } from "@/app/auth-pages/sign-up/smtp-message";
 
 export default async function Signup(props: {
+  // not suer what this does, maybe for sign up user errors
   searchParams: Promise<Message>;
 }) {
   const searchParams = await props.searchParams;
@@ -20,6 +21,7 @@ export default async function Signup(props: {
 
   return (
     <>
+      {/* standard html */}
       <form className="flex flex-col min-w-64 max-w-64 mx-auto">
         <h1 className="text-2xl font-medium">Sign up</h1>
         <p className="text-sm text text-foreground">
@@ -45,6 +47,7 @@ export default async function Signup(props: {
             minLength={6}
             required
           />
+          {/* goes to file ./app/actions.ts to handle creating new user, function signUpAction */}
           <SubmitButton formAction={signUpAction} pendingText="Signing up...">
             Sign up
           </SubmitButton>
