@@ -53,7 +53,7 @@ export default async function dashboard() {
                     return (
                         <li key={sec.id} className="p-2 border-b">
                             <strong>{sec.title ?? "Untitled Section"}</strong> - {sec.description ?? "No description"}
-                            <p className="ml-4 text-gray-500">Progress: {progress}%</p>
+                            <p className="ml-4 text-gray-500">Progress: {Math.round(progress)}%</p>
 
                             {/* Link to dynamic section page (handles logic for lesson, quiz, exam) */}
                             <Link href={`/sections/${sec.id}`} className="ml-4 mt-2 inline-block bg-blue-500 text-white px-4 py-2 rounded">
