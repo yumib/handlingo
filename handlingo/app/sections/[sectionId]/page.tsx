@@ -18,7 +18,7 @@ const SectionPage = () => {
             try {
 
                 // updates the database w/ new user using file "../api/section/[sectionId]/route.ts"
-                const res = await fetch(`../../api/section/${params.sectionId}`); //fix path?
+                const res = await fetch(`/api/section/${params.sectionId}`);
                 const data = await res.json();
 
                 if (!res.ok) throw new Error(data.error);
@@ -27,7 +27,8 @@ const SectionPage = () => {
                 if (!question) throw new Error("No valid question found.");
 
                 // once found, send user to question
-                router.push(`/sections/${params.sectionId}/${question.type}?q=${question.id}`);
+                console.log(question)
+                router.push(`/sections/${params.sectionId}/${question.type}?q=${question.question_num}`);
             } catch (error) {
                 console.error("Error fetching section data:", error);
             } finally {

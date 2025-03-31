@@ -179,19 +179,6 @@ export async function updateUserAuthPassword(newPassword: string) {
 }
 
 // [SECTIONID] QUERIES:
-// Fetch all questions for a section
-export async function getQuestionsForSection(sectionId: number) {
-    const supabase = await initializeSupabase();
-    const { data, error } = await supabase
-        .from("Question_Table")
-        .select("*")
-        .eq("section_id", sectionId)
-        .order("id", { ascending: true });
-
-    if (error) throw new Error("Error fetching questions from Question_Table");
-    return data;
-}
-
 export async function getUserProgress(userId: number, sectionId: number) {
     const supabase = await initializeSupabase();
     const { data, error } = await supabase
@@ -205,8 +192,21 @@ export async function getUserProgress(userId: number, sectionId: number) {
     return data;
 }
 
+// Fetch all questions for a section
+export async function getQuestionsForSection(sectionId: number) {
+    const supabase = await initializeSupabase();
+    const { data, error } = await supabase
+        .from("Question_Table")
+        .select("*")
+        .eq("section_id", sectionId)
+        .order("id", { ascending: true });
+
+    if (error) throw new Error("Error fetching questions from Question_Table");
+    return data;
+}
+
 // Fetch a single question by its section Id
-export async function getQuestionById(questionNum: number, sectionId: number) {
+export async function getQuestionByNum(questionNum: number, sectionId: number) {
     const supabase = await initializeSupabase();
     const { data, error } = await supabase
         .from("Question_Table")
@@ -216,5 +216,6 @@ export async function getQuestionById(questionNum: number, sectionId: number) {
         .single();
 
     if (error) throw new Error("Error fetching question");
+    console.log(data)
     return data;
 }
