@@ -52,6 +52,16 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // custom blue login color 
+        darkBlue: "#63A5C5",
+        lightBlue: "#B4C7E4",
+        pimpPurple: "D4AAF0",
+        gray: "#626367",
+        black: "#212225",
+        trafficRef: "#FE5959",
+        trafficYellow: "#FAD35B",
+        trafficGreen: "#81EB57",
+        white: "#F7F9FF"
       },
       borderRadius: {
         lg: "var(--radius)",

@@ -5,6 +5,7 @@ import { SubmitButton } from "@/components/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
+import Image from "next/image";
 
 
 
@@ -14,8 +15,17 @@ export default async function SignIn(props: { searchParams: Promise<Message> }) 
   const searchParams = await props.searchParams;
 
   return (
-    // standard html 
-    <form className="flex-1 flex flex-col min-w-64">
+    // background image
+    <div className="flex w-screen items-center justify-center min-h-screen relative">
+      {/* Background Image */}
+      <Image
+        src="/assets/login-background.png" // Use the imported image
+        alt="Login Background"
+        className="absolute top-0 left-0 w-full h-full object-full"
+        width= {800}
+        height={800}
+      />
+    <form className="flex-1 flex flex-col min-w-48 max-w-72">
       <h1 className="text-2xl font-medium">Log in</h1>
       <p className="text-sm text-foreground">
         Don't have an account?{" "}
@@ -47,7 +57,8 @@ export default async function SignIn(props: { searchParams: Promise<Message> }) 
         </SubmitButton>
         <FormMessage message={searchParams} />
       </div>
-    </form>            
+    </form> 
+  </div>           
   );
 }
 
