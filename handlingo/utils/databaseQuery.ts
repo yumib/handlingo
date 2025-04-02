@@ -125,7 +125,7 @@ export async function getSectionsbyUnitNum (unitNum: number) {
 export async function updateUserProfile(email: string, updatedFields: Record<string, any>) {
     const supabase = await initializeSupabase(); 
     const { data, error } = await supabase
-        .from("User_Table") // Adjust table name if needed
+        .from("User_Table") 
         .update(updatedFields)
         .eq("email", email);
 
@@ -134,36 +134,6 @@ export async function updateUserProfile(email: string, updatedFields: Record<str
         return error;
     }
     return null;
-}
-
-// update Supabase Auth email and User Table email
-export async function updateUserEmail(newEmail: string, oldEmail: string) {
-    const supabase = await initializeSupabase();
-    try {
-        // Step 1: Update email in the auth table (if email is part of updatedFields)
-        const { error } = await supabase.auth.updateUser({ email: newEmail });
-
-        if (error) {
-            throw new Error("Error updating email in auth table: ", error);
-        }
-
-        // Step 2: Update the User_Table (excluding password & email since email is updated already)
-        const { data, error: dbError } = await supabase
-            .from('User_Table')
-            .update({ email: newEmail })
-            .eq('email', oldEmail);
-
-        if (dbError) {
-            throw new Error("Error updating user profile in User_Table: " + dbError.message);
-        }
-
-        console.log("User profile updated successfully in both auth and User_Table");
-        return data;
-
-    } catch (error) {
-        console.error("Error updating user profile:", error);
-        return { error: error };
-    }
 }
 
 // update Supabase Auth password

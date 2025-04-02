@@ -62,20 +62,6 @@ export default function AccountForm({ user }) {
         });
           
         const result = await res.json();
-
-        // attempt to resign in user, will be fixed later since user won't be able to change email
-        if (email !== user.email) {
-          const { error } = await supabase.auth.signInWithPassword({
-              email: user.email,
-              password,
-          });
-            console.log('RESIGNED IN')
-          if (error) {
-            console.error('Error refreshing session:', error.message);
-          } else {
-            console.log('Session refreshed successfully');
-          }
-        }
     
         if (result.message === 'Profile updated successfully') {
             alert('Profile updated!');
@@ -146,11 +132,12 @@ export default function AccountForm({ user }) {
         />
       </div>
       <div>
-        <label htmlFor="email">Email</label>
+        <label htmlFor="email">Email (Cannot be changed)</label>
         <input
           id="email"
           type="text"
-          value={email || ''}
+          value={email || ''} 
+          disabled
           onChange={(e) => setEmail(e.target.value)}
         />
       </div>
