@@ -53,13 +53,13 @@ export default async function SignIn(props: { searchParams: Promise<Message> }) 
 
         {/* User Form Input Section */}
         <div className="flex flex-col w-full pl-5 pr-5 gap-2 [&>input]:mb-5 mt-8">
-          {/* Email */}
-          <Label className="font-nunito font-medium" htmlFor="email">Email</Label>
+          {/* Username */}
+          <Label className="font-nunito font-medium" htmlFor="email">Username</Label>
           <Input className="border-b-1 border-black" 
-            name="email" 
-            placeholder="Your email" 
+            name="username" 
+            placeholder="Your username" 
             required 
-            /> {/* changed from 'username' to 'email' !!!!! */}
+            /> 
 
           {/* Password */}
           <Label className="font-nunito font-medium" htmlFor="password">Password</Label>
