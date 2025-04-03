@@ -1,8 +1,8 @@
 // components/Navbar.tsx
-
 import Link from 'next/link';
 import LogoutButton from './logoutButton';
 import ClientOnly from '../client/clientOnly'; // Import the ClientOnly wrapper
+import Image from 'next/image'
 
 const Navbar = () => {
   return (
@@ -16,6 +16,13 @@ const Navbar = () => {
       color: '#fff',
       zIndex: 1000,
     }}>
+      {/* image logo */}
+      <Image
+      src = "/assets/navbar-logo.png"
+      alt = "Logo"
+      width = {400}
+      height = {400}
+      />
       <ul style={{ 
         listStyleType: 'none',
         display: 'flex',
