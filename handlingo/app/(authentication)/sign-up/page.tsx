@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import Image from "next/image";
-import { SmtpMessage } from "@/app/auth-pages/sign-up/smtp-message";
+import { SmtpMessage } from "./smtp-message";
 
 export default async function Signup(props: { searchParams: Promise<Message>; }) {
   
@@ -22,34 +22,13 @@ export default async function Signup(props: { searchParams: Promise<Message>; })
 
   return (
     <>
-    <div className="flex w-screen items-center justify-center min-h-screen relative">
-      {/* Background Image */}
-      <Image
-        src="/assets/login-background.png" // Use the imported image
-        alt="Login Background"
-        className="absolute top-0 left-0 w-full h-full object-full z-0"
-        width= {800}
-        height={800}
-      />
-    
-    <form className="relative flex-1 flex flex-col min-w-48 max-w-96 z-10">
-      {/* Handlingo Title */}
-      <div className="flex justify-center">
-        <Image
-          src="/assets/handlingo-title.png"
-          alt="Handlingo Login Title"
-          className="mb-10 w-96 h-auto"
-          width={600} // Adjust the width as needed
-          height={150}  // Adjust the height as needed
-        />
-      </div>
-
+      <form className="relative flex-1 flex flex-col min-w-64 w-3/12">
       {/* Log In Box */}
       <div className="flex flex-col items-center space-y-4 p-6 bg-lightBlue rounded-lg w-full">
 
         {/* Log In / Sign Up button */}
         <div className="flex items-center justify-between w-40">
-          <Link className="w-1/2 text-sm font-semibold font-fira text-gray mb-4 pb-2 border-b-2 border-lightBlue max-w-max" href="/">
+          <Link className="w-1/2 text-sm font-semibold font-fira text-gray mb-4 pb-2 border-b-2 border-lightBlue max-w-max" href="/sign-in">
             Log in
           </Link>
 
@@ -97,7 +76,6 @@ export default async function Signup(props: { searchParams: Promise<Message>; })
         {/* <SmtpMessage /> */}
       </div> {/* end blue box container */}
       </form>
-    </div>
     </>
   );
 }

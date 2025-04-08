@@ -3,6 +3,8 @@ import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import Link from "next/link";
 import "./globals.css";
+import Navbar from "@/components/ui/navbar";
+// import { useEffect, useState } from "react";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -24,6 +26,16 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
+  // const [showNavbar, setShowNavbar] = useState(true);
+
+  // useEffect(() => {
+  //   if (window.location.pathname.startsWith("/sign-in")) {
+  //     setShowNavbar(false);
+  //   } else {
+  //     setShowNavbar(true);
+  //   }
+  // }, []);
   return (
     <html lang="en" className={geistSans.className} suppressHydrationWarning>
       <body className="bg-background text-foreground">
@@ -33,6 +45,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          {/* call navbar.tsx file  and import the file */}
+          {/* {showNavbar && <Navbar />} */}
+          {/* <Navbar/> */}
           <main className="min-h-screen flex flex-col items-center">
           {children} {/* Render the page content */}
           </main>
