@@ -189,3 +189,32 @@ export async function getQuestionByNum(questionNum: number, sectionId: number) {
     console.log(data)
     return data;
 }
+// Adds points by updating a user's score and returning the new score
+export async function updateUserScore(userId: number, amount: number) {
+    const supabase = await initializeSupabase();
+
+    // selecting the score from the user progress table 
+    const { data, error: fetchError } = await supabase
+        .from("User_Progress_Table")
+        .select("score")
+        .eq("id", userId)
+        .single();
+
+    if (fetchError) {
+        console.error("Error fetching score: ", fetchError);
+        throw new Error("Failed to fetch user score.");
+    }
+    const newScore = data.score + amount;
+
+    // updating the score in the database
+    // this might break if the permissions do the same thing as the email - Hector
+    const { error } = await supabase
+        .from("User_Progress_Table")
+        .update({ score: newScore })
+        .eq("id", userId);
+
+    if (error) {
+        console.error("Error updating score: ", error);
+        throw new Error("Failed to update user score.");
+    }
+}
