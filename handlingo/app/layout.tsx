@@ -45,13 +45,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {/* call navbar.tsx file  and import the file */}
-          {/* {showNavbar && <Navbar />} */}
-          {/* <Navbar/> */}
-          <main className="min-h-screen flex flex-col items-center">
+        </ThemeProvider>
+        <main>
           {children} {/* Render the page content */}
           </main>
-        </ThemeProvider>
       </body>
     </html>
   );
