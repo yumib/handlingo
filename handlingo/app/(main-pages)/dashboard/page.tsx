@@ -12,25 +12,46 @@ type LessonsOverviewProps = {
 {/* LessonsOverview is the box with unit selection + the subunits that are part of it */}
 const LessonsOverview = ({ sectionInfo, userAttempts, unitInfo }: LessonsOverviewProps) => {
     return <>
+    <div className="flex flex-col h-[calc(100vh-5rem)]"> {/* full height minus top margin */}
+
     {/* Unit Select */}
-    <div className="flex items-center justify-between pt-5 pl-5 w-1/4">
-        <h1 className="w-1/3 text-sm font-semibold font-fira text-black pl-5 mb-4 pb-2 border-b-2 border-black">
+    <div className="flex items-center gap-4 px-4 pt-4 w-1/5 mb-8">
+
+        <button className="font-semibold font-fira text-black border-b-4 border-black pb-1">
             Unit 1
-        </h1>
+        </button>
 
-        <h1 className="w-1/3 text-sm font-semibold font-fira text-gray mb-4 pb-2 border-b-2 border-gray max-w-max">
-            Unit 2   {/* Change to Link once more lessons exist */}
-        </h1>
+        <button className="font-semibold font-fira text-gray border-b-2 border-gray max-w-max pb-1">
+            Unit 2   {/* Link page once more lessons exist */}
+        </button>
 
-        <h1 className="w-1/3 text-sm font-semibold font-fira text-gray mb-4 pb-2 border-b-2 border-gray max-w-max">
-            Unit 3   {/* Change to Link once more lessons exist */}
-        </h1>
+        <span className="ml-auto text-gray text-lg">→</span>
     </div>
 
-    {/* Unit Title */}
-    <h2>{unitInfo?.unit_name ?? "Unknown Unit"}</h2>
+    {/* Unit Title and Progress */}
+    <div className="flex justify-between">
+        {/* Unit Title and Progress */}
+        <h1 className="text-3xl font-bold font-fira pl-7 pb-5">
+            {unitInfo?.unit_name ?? "Unknown Unit"}
+        </h1>
+
+        {/* PENDING-- Actually use lesson progress */}
+        <div className="flex pt-2 gap-1.5 w-6/12 pr-9">
+            <span className="text-sm text-gray-600 font-nunito">
+                {Math.round(14)}%
+            </span>
+            <div className="w-full h-4 border border-black bg-white rounded-full">
+                <div
+                className="h-full bg-darkBlue rounded-full"
+                style={{ width: `${14}%` }}
+                />
+                </div>
+        </div>
+    </div>
+   
     
-    {/* Section List */}
+    {/* Scrollable Section List */}
+    <div className="overflow-y-auto flex-grow px-5 pr-8 pb-4">
     {sectionInfo.length > 0 ? (
         <ul>
             {sectionInfo.map((sec) => {
@@ -39,23 +60,42 @@ const LessonsOverview = ({ sectionInfo, userAttempts, unitInfo }: LessonsOvervie
                 const progress = attempt?.progress_pct ?? 0;
 
                 return (
-                    <li key={sec.id} className="p-2 border-b">
-                        <strong>{sec.title ?? "Untitled Section"}</strong> - {sec.description ?? "No description"}
-                        <p className="ml-4 text-gray-500">Progress: {Math.round(progress)}%</p>
+                    <li key={sec.id} className="justify-items-center">
 
-                        {/* Link to dynamic section page (handles logic for lesson, quiz, exam) */}
-                        <Link href={`/sections/${sec.id}`} className="ml-4 mt-2 inline-block bg-blue-500 text-white px-4 py-2 rounded">
-                            Continue
-                        </Link>
+                    {/* Link to dynamic section page (handles logic for lesson, quiz, exam) */}
+                    <Link href={`/sections/${sec.id}`} 
+                        className="flex justify-between items-center transition-all 
+                                    px-14 py-10
+                                    border-b-2 border-zinc-300 
+                                    w-min-96 w-10/12">
+                        
+                        {/* Section Number and Name */}
+                        <span className="text-lg font-medium font-fira text-black">
+                            {sec.title ?? "Untitled Section"} {sec.description ?? "No description"}
+                        </span>
+
+                        {/* Progress Bar for Section */}
+                        <div className="flex flex-col items-center gap-0.5 w-5/12">
+                            <div className="w-full h-4 border border-black bg-white rounded-full">
+                                <div
+                                className="h-full bg-lightBlue rounded-full"
+                                style={{ width: `${progress}%` }}
+                                />
+                            </div>
+                            <span className="text-sm text-gray-600 font-nunito">
+                                {Math.round(progress)}%
+                            </span>
+                        </div>
+                    </Link>
                     </li>
-                    
                 );
             })}
         </ul>
         ) : (
-            <p>No sections found.</p>
+            <p>Lessons Coming Soon!</p>
         )
-    } </>
+    } </div> 
+    </div> </>
 }
 
 {/* PimpLeader is the box with pimp tip + leaderboard and stats */}
@@ -121,9 +161,9 @@ export default async function dashboard() {
 
     // UI stuff
     return ( <>
-        <div className= "flex min-h-screen min-w-48 w-full mt-14 bg-green-400">
+        <div className= "flex h-[95vh] min-w-48 w-full mt-10">
             {/* unit selection + subunits */}
-            <div className= "w-2/3 m-7 mr-4 border-2 border-black bg-blue-400">
+            <div className= "w-2/3 m-7 mr-4 border-2 border-black overflow-hidden">
                 <LessonsOverview
                     sectionInfo={sectionInfo}
                     userAttempts={userAttempts}
