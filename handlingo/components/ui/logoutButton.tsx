@@ -12,8 +12,8 @@ export default function LogoutButton() {
   };
 
   return (
-    <button onClick={handleLogout} style={{color: 'black', fontWeight: 'bolder'}} className="btn-logout">
-      Log out
+    <button onClick={handleLogout} style={{font: 'fira', color: 'black', fontWeight: 'bold', fontSize: '24'}} className="btn-logout">
+      SIGN OUT
     </button>
   );
 }

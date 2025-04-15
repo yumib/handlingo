@@ -12,7 +12,7 @@ const Navbar = () => {
       position: 'fixed',
       top: 0,
       left: 0,
-      padding: '0.5rem 1rem',
+      padding: '1rem 1rem',
       backgroundColor: 'white',
       zIndex: 1000,
       display: 'grid',
@@ -41,7 +41,7 @@ const Navbar = () => {
           justifySelf: 'end',
           width: '100%',
           display: 'flex',
-          justifyContent: 'flex-end'
+          justifyContent: 'flex-end',
           }}
         >
         <ul style={{ 
@@ -54,10 +54,10 @@ const Navbar = () => {
         }}>
         
           <li>
-            <Link href="/dashboard" style={{ color: 'black', fontWeight: 'bolder'}}>Dashboard</Link>
+            <Link href="/dashboard" style={{ font: 'fira', color: 'black', fontWeight: 'bold', fontSize: '24'}}>DASHBOARD</Link>
           </li>
           <li>
-            <Link href="/profile" style={{ color: 'black', fontWeight: 'bolder'}}>Profile</Link>
+            <Link href="/profile" style={{ font: 'fira', color: 'black', fontWeight: 'bold', fontSize: '24'}}>PROFILE</Link>
           </li>
           <li>
             <ClientOnly>
