@@ -1,6 +1,7 @@
 import { getUserLessonAttempts, getInternalUserByEmail, getUnitbyNum, getSectionsbyUnitNum } from "@/utils/databaseQuery";
 import { createClient } from "@/utils/supabase/server";
 import Link from 'next/link';
+import Image from "next/image";
 
 {/* Gabe Lira recommended breaking this up into Functional Components! Cleaner way to organize*/}
 type LessonsOverviewProps = {
@@ -101,29 +102,100 @@ const LessonsOverview = ({ sectionInfo, userAttempts, unitInfo }: LessonsOvervie
 {/* PimpLeader is the box with pimp tip + leaderboard and stats */}
 const PimpLeader = () => {
     return <>
-    <h2>
-        <ul>
-            <li>Item 1</li>
-        </ul>
-    </h2>
-    <h2>
-        <ul>
-            <li>Item 1</li>
-        </ul>
-    </h2>
-    <h2>
-        <ul>
-            <li>Item 1</li>
-        </ul>
-    </h2>
-    <h2>
-        <ul>
-            <li>Item 1</li>
-        </ul>
-    </h2>
-    
+
+    {/* Pimp Tip */}
+    <div className="flex flex-col w-full h-32 bg-purple-300 rounded-xl"> 
+        {/* Title */}
+        <h1 className="text-lg font-bold font-fira text-black pt-2 pl-4">
+            Pimp Tip!
+        </h1>
+
+        {/* Pimp + Tip */}
+        <div className="flex w-min-56 w-full h-28">
+            {/* Pimp */}
+            <div style={{justifySelf: 'start'}} className="pl-10 py-3">
+                <Image
+                src = "/assets/actually-pimp.png"
+                alt = "Nerd"
+                width = {70}
+                height = {70}
+                />
+            </div>
+
+            {/* Tip */}
+            <div style={{justifySelf: 'center'}} className="px-5 py-3">
+                <p className="text-sm font-medium font-fira text-black"> 
+                    Flap those fingers like wings!
+                    The more you practice, the smoother 
+                    you'll fly through ASL. 
+                </p>
+            </div>
+        </div>
+    </div>    
+
+    {/* Stats and Leaderboard */}
+    <div className="flex flex-col w-full h-[67vh] mt-8 border-2 border-black"> 
+        {/* Title */}
+        <h1 className="text-lg font-bold font-fira text-black pt-2 pl-4">
+                YOUR STATS
+            </h1>
+        {/* Stats */}
+        <div className="flex flex-col items-center mb-5"> 
+            {/* Info (rank and XP ) */}
+            <div className="flex flex-col items-center w-72 mx-5">
+                <div className='flex items-center justify-between w-40'>
+                    <div className='flex'>
+                    <h1 className="text-2xl font-bold font-fira text-black pb-1 pr-2">
+                        👑
+                    </h1>
+                    <h1 className="text-lg font-medium font-fira text-black pt-1">
+                        RANK
+                    </h1>
+                    </div>
+                    {/* Add RANK data grab here */}
+                    <h1 className="text-lg font-normal font-fira text-black">
+                        #10000
+                    </h1>
+                </div>
+
+                <div className='flex items-center justify-between w-40'>
+                    <div className='flex'>
+                    <h1 className="text-2xl font-bold font-fira text-black pb-1 pr-2">
+                        ✨
+                    </h1>
+                    <h1 className="text-lg font-medium font-fira text-black pt-1">
+                        XP
+                    </h1>
+                    </div>
+                    {/* Add XP data grab here */}
+                    <h1 className="text-lg font-normal font-fira text-black">
+                        999999
+                    </h1>
+                </div>
+
+                
+            </div>
+        </div>
+        
+
+
+        {/* Leaderboard */}
+        <div className="flex flex-col h-full"> 
+            {/* Title */}
+            <h1 className="text-lg font-bold font-fira text-black pt-2 pl-4">
+                LEADERBOARD
+            </h1>
+
+            {/* Table */}
+            <div className="flex justify-center my-5 mx-10 h-full bg-slate-300">
+                Coming Soon!
+            </div>
+
+        </div>
+    </div>
     </>
 }
+// overflow-y-auto flex-grow overflow-hidden
 
 {/* Everything below is part of whats getting output */}
 export default async function dashboard() {
@@ -172,7 +244,7 @@ export default async function dashboard() {
             </div>
 
             {/* pimp tip + leaderboard */}
-            <div className= "w-1/3 m-7 ml-4 border-2 border-black bg-red-400">
+            <div className= "w-1/3 m-7 ml-4 overflow-hidden">
                 <PimpLeader /> 
             </div>
         </div>
