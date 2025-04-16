@@ -19,8 +19,8 @@ const config = {
     },
     extend: {
       fontFamily: {
-        fira: ["Fira Sans", "sans-serif"],
-        nunito: ["Nunito", "sans-serif"],
+        fira: ['var(--font-fira)'],
+        nunito: ['var(--font-nunito)'],
       },
       colors: {
         border: "hsl(var(--border))",
