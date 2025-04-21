@@ -2,18 +2,22 @@
     height: 90dvh;
   }
   
-  .flex_container {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .input {
-    outline: none;
-    box-shadow: none;
-    border: 1px solid #ccc; /* Optional: keeps a subtle border */
-  }
-  
-  .input:focus {
-    outline: none;
-    box-shadow: none;
-  }
+.flex_container {
+  display: flex;
+  flex-direction: column;
+}
+
+.input {
+  outline: none;
+  box-shadow: none;
+  border: 1px solid #ccc; /* Optional: keeps a subtle border */
+}
+
+.input:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.contianer_width {
+  width: 1000;
+}
