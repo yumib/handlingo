@@ -44,7 +44,7 @@ const NameInputField = (props: FullNameInputType) => {
   return (
     <div className="flex w-1/3 justify-center self-center gap-4 mb-12">
       {!isEditing ? (
-        <div className="flex gap-1">
+        <div className="flex gap-1 text-xl font-nunito">
           <p>{capitalize(props.firstName)}</p>
           <p>{capitalize(props.lastName)}</p>
         </div>
