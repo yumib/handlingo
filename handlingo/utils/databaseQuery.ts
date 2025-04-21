@@ -158,11 +158,16 @@ export async function getUserProgress(userId: number, sectionId: number) {
         .eq("section_id", sectionId)
         .single();
 
-    if (error) throw new Error("Error fetching user progress");
-    return data;
+    // check for errors first
+    if (error) {
+        console.error("Error fetching user progress:", error);  // Log the actual error from Supabase
+        return null;  // Return null in case of error
+    }
+
+    // if no data was returned, explicitly return null (no need for a separate check for data === null)
+    return data || null;
 }
 
-// Fetch all questions for a section
 export async function getQuestionsForSection(sectionId: number) {
     const supabase = await initializeSupabase();
     const { data, error } = await supabase
@@ -175,7 +180,6 @@ export async function getQuestionsForSection(sectionId: number) {
     return data;
 }
 
-// Fetch a single question by its section Id
 export async function getQuestionByNum(questionNum: number, sectionId: number) {
     const supabase = await initializeSupabase();
     const { data, error } = await supabase
@@ -188,4 +192,27 @@ export async function getQuestionByNum(questionNum: number, sectionId: number) {
     if (error) throw new Error("Error fetching question");
     console.log(data)
     return data;
+}
+
+export async function createNewUserProgress(userId: number, sectionId: number) {
+    const supabase = await initializeSupabase();
+    const { data, error } = await supabase
+        .from("User_Progress_Table")
+        .insert([
+            {
+                user_id: userId,
+                completion_status: "incomplete",
+                score: 0,
+                last_attempted_at: new Date().toISOString(),
+                progress_pct: 0,
+                section_id: sectionId
+            }
+        ]);
+
+    if (error) {
+        console.error("Error inserting new user in User_Table:", error);
+        return { success: false, message: error.message };
+    }
+    
+    return { success: true, data };
 }
