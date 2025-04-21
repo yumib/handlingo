@@ -215,6 +215,7 @@ export async function createNewUserProgress(userId: number, sectionId: number) {
     }
     
     return { success: true, data };
+}
 
 // Adds points by updating a user's score and returning the new score
 export async function updateUserScore(userId: number, amount: number) {
