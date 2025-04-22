@@ -4,7 +4,8 @@
     "dev-secure": "next dev --experimental-https",
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "open": "next dev --experimental-https -H 0.0.0.0 -p 3000"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^0.10.22-rc.20250304",
