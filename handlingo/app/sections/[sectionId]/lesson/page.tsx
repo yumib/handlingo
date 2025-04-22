@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useParams, useRouter } from "next/navigation";
 import Layout from '@/components/ui/layout'; 
 import CameraFeed from "@/components/client/CameraFeed";
+import VideoPlayer from "@/components/ui/lessonVid";
 // make a list that counts through the questions once we've hit the last one 
 // display "congrats you finished the lesson" and give points
 
@@ -27,33 +28,43 @@ const QuestionPage = () => {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
   const [pointsAwarded, setPointsAwarded]= useState(false);
+  const [videoUrl, setVideoUrl] = useState("")
   // keeps track of what question the user is on by parsing the url
   const questionNumber = parseInt(searchParams.get("q") || "1", 10);
 
   useEffect(() => {
     if (!params.sectionId) return;
-
-    // fetch the question data from API
-    const fetchQuestion = async () => {
+  
+    const fetchData = async () => {
       try {
-        const res = await fetch(`/api/section/${params.sectionId}/${questionNumber}`);
-        const data = await res.json();
-        console.log(data)
-        if (!res.ok) throw new Error(data.error);
-
-        setQuestion(data.question); // assuming the API returns { question: { ... } }
+        // fetch question and video in parallel
+        const [questionRes, videoRes] = await Promise.all([
+          fetch(`/api/section/${params.sectionId}/${questionNumber}`),
+          fetch(`/api/lessonVids/${params.sectionId}/${questionNumber}`)
+        ]);
+  
+        const questionData = await questionRes.json();
+        const videoData = await videoRes.json();
+  
+        if (!questionRes.ok) throw new Error(questionData.error);
+        if (!videoRes.ok) throw new Error(videoData.error);
+  
+        setQuestion(questionData.question);
+        setVideoUrl(videoData.lessonVid);
       } catch (error) {
-        console.error("Error fetching question:", error);
+        console.error("Error fetching data:", error);
       } finally {
-        setLoading(false);
+        setLoading(false); // only after both fetches complete
       }
     };
-
-    fetchQuestion();
+  
+    fetchData();
   }, [params.sectionId, searchParams]);
+  
 
   if (loading) return <p>Loading question...</p>;
   if (!question) return <p>Question not found.</p>;
+
 
   const handlePrediction= async (predictedLetter:string) =>{
     if(!question || pointsAwarded)
@@ -98,6 +109,7 @@ const QuestionPage = () => {
       }
   };
 
+  console.log(videoUrl)
   return (
     // display data
     <Layout>
@@ -116,6 +128,7 @@ const QuestionPage = () => {
       }}
       onPrediction={handlePrediction}
       />
+      <VideoPlayer videoUrl={videoUrl} />
     </div>
     </Layout>
   );

@@ -246,3 +246,21 @@ export async function updateUserScore(userId: number, amount: number) {
         throw new Error("Failed to update user score.");
     }
 }
+
+// get url of video lessons
+export const getSignedVideoUrl = async (sectionId: number, questionNum: number) => {
+  const supabase = await initializeSupabase();
+  const path = `section_${sectionId}/question_${questionNum}.mp4`;
+
+  const { data, error } = await supabase
+    .storage
+    .from('lesson-vids')
+    .createSignedUrl(path, 60)
+
+    if (error) {
+        console.error("Error getting lesson vid url: ", error);
+        throw new Error("Failed to get URL to lesson video.");
+    }
+
+  return data.signedUrl;
+};
