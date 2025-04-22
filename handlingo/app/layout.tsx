@@ -1,3 +1,4 @@
+import { Fira_Sans, Nunito } from  "next/font/google";
 import { hasEnvVars } from "@/utils/supabase/check-env-vars";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
@@ -21,6 +22,18 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
+const firaSans = Fira_Sans({
+  subsets: ["latin"],
+  variable: "--font-fira",
+  weight: ["400", "700"], // I probably should modify this
+});
+
+const nunito = Nunito({
+  subsets: ["latin"],
+  variable: "--font-nunito",
+  weight: ["400", "700"], // I probably should modify this
+});
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -37,7 +50,11 @@ export default function RootLayout({
   //   }
   // }, []);
   return (
-    <html lang="en" className={geistSans.className} suppressHydrationWarning>
+    <html 
+      lang="en" 
+      className={`${geistSans.className} ${firaSans.variable} ${nunito.variable}`} 
+      suppressHydrationWarning
+    >
       <body className="bg-background text-foreground">
         <ThemeProvider
           attribute="class"
