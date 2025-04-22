@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useParams, useRouter } from "next/navigation";
 import Layout from '@/components/ui/layout'; 
-// import MultipleChoice from "@/components/client/multipleChoice";
+import MultipleChoice from "@/components/client/multipleChoice";
 
 
 const QuestionPage = () => {
@@ -96,18 +96,18 @@ const QuestionPage = () => {
         setFeedback("Thats wrong. Try again.")
       }
   };
-
   return (
     // display data
     <Layout>
     <div>
       <h1>{question.title}</h1>
       <p>{question.header}</p>
-      {/* <MultipleChoice
+      {Array.isArray(question?.options) &&(
+        <MultipleChoice
           choices={question.options}
           selectedAnswer={selectedAnswer}
           onAnswer={handleAnswer}
-        /> */}
+        /> )}
       <p>FeedBack:{feedback}</p>
       <p>Correct Answer: {question.correct_answer}</p>
     </div>
