@@ -158,11 +158,16 @@ export async function getUserProgress(userId: number, sectionId: number) {
         .eq("section_id", sectionId)
         .single();
 
-    if (error) throw new Error("Error fetching user progress");
-    return data;
+    // check for errors first
+    if (error) {
+        console.error("Error fetching user progress:", error);  // Log the actual error from Supabase
+        return null;  // Return null in case of error
+    }
+
+    // if no data was returned, explicitly return null (no need for a separate check for data === null)
+    return data || null;
 }
 
-// Fetch all questions for a section
 export async function getQuestionsForSection(sectionId: number) {
     const supabase = await initializeSupabase();
     const { data, error } = await supabase
@@ -175,7 +180,6 @@ export async function getQuestionsForSection(sectionId: number) {
     return data;
 }
 
-// Fetch a single question by its section Id
 export async function getQuestionByNum(questionNum: number, sectionId: number) {
     const supabase = await initializeSupabase();
     const { data, error } = await supabase
@@ -189,3 +193,74 @@ export async function getQuestionByNum(questionNum: number, sectionId: number) {
     console.log(data)
     return data;
 }
+
+export async function createNewUserProgress(userId: number, sectionId: number) {
+    const supabase = await initializeSupabase();
+    const { data, error } = await supabase
+        .from("User_Progress_Table")
+        .insert([
+            {
+                user_id: userId,
+                completion_status: "incomplete",
+                score: 0,
+                last_attempted_at: new Date().toISOString(),
+                progress_pct: 0,
+                section_id: sectionId
+            }
+        ]);
+
+    if (error) {
+        console.error("Error inserting new user in User_Table:", error);
+        return { success: false, message: error.message };
+    }
+    
+    return { success: true, data };
+}
+
+// Adds points by updating a user's score and returning the new score
+export async function updateUserScore(userId: number, amount: number) {
+    const supabase = await initializeSupabase();
+
+    // selecting the score from the user progress table 
+    const { data, error: fetchError } = await supabase
+        .from("User_Progress_Table")
+        .select("score")
+        .eq("id", userId)
+        .single();
+
+    if (fetchError) {
+        console.error("Error fetching score: ", fetchError);
+        throw new Error("Failed to fetch user score.");
+    }
+    const newScore = data.score + amount;
+
+    // updating the score in the database
+    // this might break if the permissions do the same thing as the email - Hector
+    const { error } = await supabase
+        .from("User_Progress_Table")
+        .update({ score: newScore })
+        .eq("id", userId);
+
+    if (error) {
+        console.error("Error updating score: ", error);
+        throw new Error("Failed to update user score.");
+    }
+}
+
+// get url of video lessons
+export const getSignedVideoUrl = async (sectionId: number, questionNum: number) => {
+  const supabase = await initializeSupabase();
+  const path = `section_${sectionId}/question_${questionNum}.mp4`;
+
+  const { data, error } = await supabase
+    .storage
+    .from('lesson-vids')
+    .createSignedUrl(path, 60)
+
+    if (error) {
+        console.error("Error getting lesson vid url: ", error);
+        throw new Error("Failed to get URL to lesson video.");
+    }
+
+  return data.signedUrl;
+};

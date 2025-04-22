@@ -18,7 +18,7 @@ export default function CameraFeed({ targetLetter, onNext, onPrediction }: { tar
   const [timerId, setTimerId] = useState<NodeJS.Timeout | null>(null);
   const [handLandmarker, setHandLandmarker] = useState<HandLandmarker | null>(null);
   const [isVideoReady, setIsVideoReady] = useState(false);//tracks if the video is ready to be used
-
+  const [pointsAwarded, setPointsAwarded] = useState(false);// tracks if we've given points for the question already
 
   // This loads the model + calls camera start function
   useEffect(() => {
@@ -147,7 +147,7 @@ export default function CameraFeed({ targetLetter, onNext, onPrediction }: { tar
       if (result && result.landmarks.length > 0) {
         const landmarkData = getLandmarkData(result, 640, 360); //numbers are video dimensions from camera.tsx i was too lazy to grab the variable (cass)
         if (!landmarkData) {
-          console.warn("LandmarkData is emoty");
+          console.warn("LandmarkData is empty");
           return;
         }
         // console.log("Landmark Data: ", landmarkData);
@@ -196,6 +196,7 @@ export default function CameraFeed({ targetLetter, onNext, onPrediction }: { tar
           }
           else if (status == "yellow" && holdTime >= 3) {
             setStatus("green");
+            setPointsAwarded(true);
           }
         }
         else {
@@ -209,8 +210,30 @@ export default function CameraFeed({ targetLetter, onNext, onPrediction }: { tar
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    if (status === "green" && !pointsAwarded) {
+      try {
+        const res = await fetch("/api/points", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          // this is how many points we're giving when we use their camera(during an exam) and they get the sign right
+          body: JSON.stringify({ amount: 5 }), 
+        });
+  
+        if (!res.ok) {
+          const error = await res.json();
+          console.error("Failed to give points:", error);
+        } else {
+          console.log("The points worked");
+        }
+      } catch (error) {
+        console.error("Error giving points:", error);
+      }
+    }
     resetHoldTimer();
+    setPointsAwarded(false);
     onNext();
   };
 

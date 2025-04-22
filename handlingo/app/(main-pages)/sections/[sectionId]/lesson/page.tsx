@@ -3,7 +3,10 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useParams, useRouter } from "next/navigation";
 import Layout from '@/components/ui/layout'; 
-
+import CameraFeed from "@/components/client/CameraFeed";
+import VideoPlayer from "@/components/ui/lessonVid";
+// make a list that counts through the questions once we've hit the last one 
+// display "congrats you finished the lesson" and give points
 
 const QuestionPage = () => {
 
@@ -22,35 +25,91 @@ const QuestionPage = () => {
   
   const [question, setQuestion] = useState<Question | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState("");
+  const [pointsAwarded, setPointsAwarded]= useState(false);
+  const [videoUrl, setVideoUrl] = useState("")
+  // keeps track of what question the user is on by parsing the url
+  const questionNumber = parseInt(searchParams.get("q") || "1", 10);
 
   useEffect(() => {
     if (!params.sectionId) return;
-
-    // get question number from URL query
-    const questionNumber = searchParams.get("q");
-
-    // fetch the question data from API
-    const fetchQuestion = async () => {
+  
+    const fetchData = async () => {
       try {
-        const res = await fetch(`/api/section/${params.sectionId}/${questionNumber}`);
-        const data = await res.json();
-        console.log(data)
-        if (!res.ok) throw new Error(data.error);
-
-        setQuestion(data.question); // assuming the API returns { question: { ... } }
+        // fetch question and video in parallel
+        const [questionRes, videoRes] = await Promise.all([
+          fetch(`/api/section/${params.sectionId}/${questionNumber}`),
+          fetch(`/api/lessonVids/${params.sectionId}/${questionNumber}`)
+        ]);
+  
+        const questionData = await questionRes.json();
+        const videoData = await videoRes.json();
+  
+        if (!questionRes.ok) throw new Error(questionData.error);
+        if (!videoRes.ok) throw new Error(videoData.error);
+  
+        setQuestion(questionData.question);
+        setVideoUrl(videoData.lessonVid);
       } catch (error) {
-        console.error("Error fetching question:", error);
+        console.error("Error fetching data:", error);
       } finally {
-        setLoading(false);
+        setLoading(false); // only after both fetches complete
       }
     };
-
-    fetchQuestion();
+  
+    fetchData();
   }, [params.sectionId, searchParams]);
+  
 
   if (loading) return <p>Loading question...</p>;
   if (!question) return <p>Question not found.</p>;
 
+
+  const handlePrediction= async (predictedLetter:string) =>{
+    if(!question || pointsAwarded)
+    {
+      return;
+    }
+    setSelectedAnswer(predictedLetter);
+
+    if(predictedLetter === question.correct_answer)
+      {
+        setFeedback("Thats Correct!");
+          if(questionNumber===5 && !pointsAwarded){
+        try{
+          const result = await fetch("/api/points",{
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ amount: 10 }) // the points we're giving in this section(10 points for completing a lesson)
+          
+        });
+          if(!result.ok)
+          {
+            const error = await result.json();
+            console.error("Failed to give points: ",error);
+          }
+          else
+          {
+            console.log("Points given at the end of the lesson");
+            setPointsAwarded(true);
+          }
+        }
+      
+        catch(error)
+        {
+          console.error("Error updating points/score")
+        }
+        
+          }
+        }
+      else
+      {
+        setFeedback("Thats wrong. Try again.")
+      }
+  };
+
+  console.log(videoUrl)
   return (
     // display data
     <Layout>
@@ -59,6 +118,17 @@ const QuestionPage = () => {
       <p>{question.header}</p>
       <p>{question.description}</p>
       <p>{question.correct_answer}</p>
+      <p>FeedBack:{feedback}</p>
+      <CameraFeed
+      targetLetter={question.correct_answer}
+      onNext={()=>{
+        setPointsAwarded(false);
+        setSelectedAnswer(null);
+        setFeedback("");
+      }}
+      onPrediction={handlePrediction}
+      />
+      <VideoPlayer videoUrl={videoUrl} />
     </div>
     </Layout>
   );
