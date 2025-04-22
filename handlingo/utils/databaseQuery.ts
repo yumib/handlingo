@@ -149,6 +149,19 @@ export async function updateUserAuthPassword(newPassword: string) {
 }
 
 // [SECTIONID] QUERIES:
+export async function createOrFetchProgress(userId: number, sectionId: number) {
+    const supabase = await initializeSupabase();
+    
+    let progress = await getUserProgress(userId, sectionId);
+    if (!progress) {
+      const { success } = await createNewUserProgress(userId, sectionId);
+      if (!success) throw new Error("Failed to insert new progress row");
+      progress = await getUserProgress(userId, sectionId);
+    }
+    return progress;
+  }
+  
+
 export async function getUserProgress(userId: number, sectionId: number) {
     const supabase = await initializeSupabase();
     const { data, error } = await supabase
