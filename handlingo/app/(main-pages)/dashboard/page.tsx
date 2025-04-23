@@ -233,9 +233,9 @@ export default async function dashboard() {
 
     // UI stuff
     return ( <>
-        <div className= "flex h-[95vh] min-w-48 w-full mt-10">
+        <div className= "flex h-[90vh] min-w-48 w-full">
             {/* unit selection + subunits */}
-            <div className= "w-2/3 m-7 mr-4 border-2 border-black overflow-hidden">
+            <div className= "w-2/3 my-3 ml-7 border-2 border-black overflow-hidden">
                 <LessonsOverview
                     sectionInfo={sectionInfo}
                     userAttempts={userAttempts}
@@ -244,7 +244,7 @@ export default async function dashboard() {
             </div>
 
             {/* pimp tip + leaderboard */}
-            <div className= "w-1/3 m-7 ml-4 overflow-hidden">
+            <div className= "w-1/3 m-2 mx-7 overflow-hidden">
                 <PimpLeader /> 
             </div>
         </div>
