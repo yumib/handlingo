@@ -1,4 +1,3 @@
-import Layout from '@/components/ui/layout';
 import AccountForm from "@/components/client/profileForm";
 import { getInternalUserByEmail } from "@/utils/databaseQuery";
 import { createClient } from "@/utils/supabase/server";
@@ -20,10 +19,10 @@ export default async function ProfilePage() { //server component
 
     const internalUser = await getInternalUserByEmail(String(user.email));
 
-    return (
-        <>
-            {/* <h1>My Profile</h1> */}
+    return ( <>
+        {/* Profile Container */}
+        <div className= "flex h-[90vh] min-w-48 w-full">
             <AccountForm user={internalUser} />
-        </>
-    );
+        </div>
+     </> );
 }
