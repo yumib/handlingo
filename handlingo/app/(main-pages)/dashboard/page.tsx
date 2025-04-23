@@ -187,7 +187,7 @@ const PimpLeader = () => {
             </h1>
 
             {/* Table */}
-            <div className="flex justify-center my-5 mx-10 h-full bg-slate-300">
+            <div className="flex justify-center my-5 mx-10 h-[40vh] bg-slate-300">
                 Coming Soon!
             </div>
 
