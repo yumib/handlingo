@@ -134,7 +134,7 @@ const PimpLeader = () => {
     </div>    
 
     {/* Stats and Leaderboard */}
-    <div className="flex flex-col w-full h-[67vh] mt-8 border-2 border-black"> 
+    <div className="flex flex-col w-full h-[64vh] mt-5 border-2 border-black"> 
         {/* Title */}
         <h1 className="text-lg font-bold font-fira text-black pt-2 pl-4">
                 YOUR STATS
