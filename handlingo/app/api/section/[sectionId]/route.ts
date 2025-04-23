@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
-import { getInternalUserByEmail, getUserProgress, getQuestionsForSection, getQuestionByNum, createNewUserProgress } from "@/utils/databaseQuery";
+import { getInternalUserByEmail, createOrFetchProgress, getQuestionsForSection, getQuestionByNum } from "@/utils/databaseQuery";
 
 export async function GET(request: Request, context: { params: { sectionId?: string } }) {
 
@@ -36,15 +36,7 @@ export async function GET(request: Request, context: { params: { sectionId?: str
 
     try {
         // get progress w/ sectionId from db queries on './utils/databaseQuery.ts'
-        const progress = await getUserProgress(internalUser.id, sectionId);
-
-        // add a new row if there isn't a record of progress already
-        if (!progress) {
-           const { success } =  await createNewUserProgress(internalUser.id, sectionId)
-           if (success === false) {
-                throw new Error("Couldn't insert new row for user Progress in User_Table");
-           }
-        }
+        const progress = await createOrFetchProgress(internalUser.id, sectionId);
 
         // get list of question w/ sectionId from db queries on './utils/databaseQuery.ts'
         const questionList = await getQuestionsForSection(sectionId);
