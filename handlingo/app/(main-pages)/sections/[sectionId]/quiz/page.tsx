@@ -64,7 +64,7 @@ const QuestionPage = () => {
     if(answer === question.correct_answer)
       {
         setFeedback("Thats Correct!");
-          if(questionNumber===5 && !pointsAwarded){
+          if(!pointsAwarded){
         try{
           const result = await fetch("/api/points",{
             method: "POST",
