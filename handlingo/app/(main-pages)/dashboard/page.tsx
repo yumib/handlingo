@@ -134,7 +134,7 @@ const PimpLeader = () => {
     </div>    
 
     {/* Stats and Leaderboard */}
-    <div className="flex flex-col w-full h-[67vh] mt-8 border-2 border-black"> 
+    <div className="flex flex-col w-full h-[67vh] mt-7 border-2 border-black"> 
         {/* Title */}
         <h1 className="text-lg font-bold font-fira text-black pt-2 pl-4">
                 YOUR STATS
@@ -187,7 +187,7 @@ const PimpLeader = () => {
             </h1>
 
             {/* Table */}
-            <div className="flex justify-center my-5 mx-10 h-full bg-slate-300">
+            <div className="flex justify-center my-5 mx-10 h-[40vh] bg-slate-300">
                 Coming Soon!
             </div>
 
@@ -233,9 +233,9 @@ export default async function dashboard() {
 
     // UI stuff
     return ( <>
-        <div className= "flex h-[95vh] min-w-48 w-full mt-10">
+        <div className= "flex h-[90vh] min-w-48 w-full">
             {/* unit selection + subunits */}
-            <div className= "w-2/3 m-7 mr-4 border-2 border-black overflow-hidden">
+            <div className= "w-2/3 my-3 ml-7 border-2 border-black overflow-hidden">
                 <LessonsOverview
                     sectionInfo={sectionInfo}
                     userAttempts={userAttempts}
@@ -244,7 +244,7 @@ export default async function dashboard() {
             </div>
 
             {/* pimp tip + leaderboard */}
-            <div className= "w-1/3 m-7 ml-4 overflow-hidden">
+            <div className= "w-1/3 m-2 mx-7 overflow-hidden">
                 <PimpLeader /> 
             </div>
         </div>
