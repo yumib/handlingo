@@ -16,17 +16,19 @@ const LessonsOverview = ({ sectionInfo, userAttempts, unitInfo }: LessonsOvervie
     <div className="flex flex-col h-[calc(100vh-5rem)]"> {/* full height minus top margin */}
 
     {/* Unit Select */}
-    <div className="flex items-center gap-4 px-4 pt-4 w-1/5 mb-8">
-
-        <button className="font-semibold font-fira text-black border-b-4 border-black pb-1">
+    <div className="flex items-center px-4 pt-4 w-full mb-8">
+        <div className="flex items-center gap-4">
+            
+            <button className="font-semibold font-fira text-black border-b-4 border-black pb-1 whitespace-nowrap">
             Unit 1
-        </button>
+            </button>
 
-        <button className="font-semibold font-fira text-gray border-b-2 border-gray max-w-max pb-1">
-            Unit 2   {/* Link page once more lessons exist */}
-        </button>
+            <button className="font-semibold font-fira text-gray border-b-2 border-gray max-w-max pb-1 whitespace-nowrap">
+            Unit 2 {/* Link page once more lessons exist */}
+            </button>
 
-        <span className="ml-auto text-gray text-lg">→</span>
+            <span className="text-gray text-lg">→</span>
+        </div>
     </div>
 
     {/* Unit Title and Progress */}
@@ -134,8 +136,7 @@ const PimpLeader = () => {
     </div>    
 
     {/* Stats and Leaderboard */}
-    {/* overflow-y-auto flex-grow px-5 pr-8 pb-4*/}
-    <div className="flex overflow-y-auto flex-grow flex-col w-full h-[67vh] mt-7 border-2 border-black"> 
+    <div className="flex flex-col w-full mt-7 border-2 border-black overflow-y-auto h-[69vh] bg-purple-200"> 
         {/* Title */}
         <h1 className="text-lg font-bold font-fira text-black pt-2 pl-4">
                 YOUR STATS
@@ -187,8 +188,8 @@ const PimpLeader = () => {
                 LEADERBOARD
             </h1>
 
-            {/* Table */}
-            <div className="flex justify-center my-5 mx-10 h-[80vh] bg-slate-300">
+            {/* PENDING - Table */}
+            <div className="flex justify-center my-5 mx-10 min-h-0 h-96 bg-slate-300">
                 Coming Soon!
             </div>
 
@@ -196,7 +197,6 @@ const PimpLeader = () => {
     </div>
     </>
 }
-// overflow-y-auto flex-grow overflow-hidden
 
 {/* Everything below is part of whats getting output */}
 export default async function dashboard() {
@@ -234,9 +234,9 @@ export default async function dashboard() {
 
     // UI stuff
     return ( <>
-        <div className= "flex h-[90vh] min-w-48 w-full">
+        <div className= "flex flex-grow w-full overflow-hidden">
             {/* unit selection + subunits */}
-            <div className= "w-2/3 my-3 ml-7 border-2 border-black overflow-hidden">
+            <div className= "flex flex-col w-2/3 h-5/6 ml-7 border-2 border-black overflow-hidden">
                 <LessonsOverview
                     sectionInfo={sectionInfo}
                     userAttempts={userAttempts}
@@ -245,10 +245,9 @@ export default async function dashboard() {
             </div>
 
             {/* pimp tip + leaderboard */}
-            <div className= "w-1/3 m-2 mx-7 overflow-hidden">
+            <div className= "flex flex-col w-1/3 m-2 mx-7 overflow-hidden">
                 <PimpLeader /> 
             </div>
         </div>
-        
     </> );
 }
