@@ -148,6 +148,26 @@ export async function updateUserAuthPassword(newPassword: string) {
     return null;
 }
 
+export async function isUsernameUnique (username: string) {
+    const supabase = await initializeSupabase(); 
+    const { data, error } = await supabase
+        .from("User_Table") 
+        .select("id")
+        .eq("username", username);
+
+    if (error) {
+        console.error('Error checking username uniqueness:', error);
+        return error;
+    }
+
+    // username is unique
+    if (data.length === 0) {
+        return true;
+    }
+
+    return false;
+}
+
 // [SECTIONID] QUERIES:
 export async function getUserProgress(userId: number, sectionId: number) {
     const supabase = await initializeSupabase();

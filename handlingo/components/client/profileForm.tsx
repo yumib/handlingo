@@ -23,6 +23,7 @@ export default function AccountForm({ user }: { user: User }) {
   // setting information for the profile page
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
+  const [profileErrors, setProfileErrors] = useState<string[]>([]);
   const [profilePicUrl, setProfilePicUrl] = useState(
     user.profile_pic_url || ""
   ); // Store the URL of the profile picture
@@ -168,6 +169,7 @@ export default function AccountForm({ user }: { user: User }) {
   // action taken after user clicks update button
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const errors: string[] = [];
     setLoading(true);
 
     try {
@@ -188,6 +190,23 @@ export default function AccountForm({ user }: { user: User }) {
       if (email !== user.email) updatedFields["email"] = email;
       if (password !== user.password) updatedFields["password"] = password;
 
+      // error handling   
+      if (!firstName.trim()) {
+        errors.push("First name cannot be empty");
+      }
+      
+      if (!lastName.trim()) {
+        errors.push("Last name cannot be empty");
+      }
+
+      if (!username.trim()) {
+        errors.push("Username cannot be empty");
+      }
+
+      if (password.length <= 5) {
+        errors.push("Password must be at least 6 characters long")
+      }
+
       // update profile info
       if (Object.keys(updatedFields).length > 0) {
         // updates the database w/ new user using file "../api/updateProfile/route.ts"
@@ -203,15 +222,32 @@ export default function AccountForm({ user }: { user: User }) {
         });
 
         const result = await res.json();
-
-        if (result.message === "Profile updated successfully") {
-          alert("Profile updated!");
-          // refetch the profile data after update without reloading entire page
-          await fetchProfileData();
-        } else {
-          alert("Error updating profile");
+        
+        if (result.message.includes("Username is already taken")) {
+          console.log(result.message)
+          errors.push(result.message);
+        }
+        
+        if (res.ok && errors.length === 0) {
+          if (result.message === "Profile updated successfully") {
+            alert("Profile updated!");
+            // refetch the profile data after update without reloading entire page
+            await fetchProfileData();
+          }
         }
       }
+
+      // @JERRY here is where you would handle showing the errors however u want 
+      if (errors.length > 0) {
+        setProfileErrors(errors); // save errors in state if you want to keep them
+        alert(errors.join("\n")); // show all errors in one alert, line by line (temporary)
+        // Now fetch fresh profile data after alert is closed
+        await fetchProfileData();
+        return;
+      }
+
+      setProfileErrors([]);
+
     } catch (error) {
       console.log("Error updating profile!: ", error);
     } finally {
@@ -219,11 +255,12 @@ export default function AccountForm({ user }: { user: User }) {
     }
   };
 
-  // refetches changed user information
+  // // refetches changed user information
   const fetchProfileData = async () => {
     try {
       // refetches changed user info in the database w/ using file "../api/getProfile/route.ts"
       // hosts all queries and logic
+      setLoading(true);
       const response = await fetch("/api/getProfile");
       const data = await response.json();
 
@@ -238,6 +275,7 @@ export default function AccountForm({ user }: { user: User }) {
         setEmail(data.internalUser.email);
         setPassword(data.internalUser.password);
         setProfilePicUrl(data.internalUser.profile_pic_url);
+        setLoading(false);
       }
     } catch (error) {
       console.error("Error fetching profile data:", error);

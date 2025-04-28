@@ -1,11 +1,21 @@
 import { NextResponse } from 'next/server';
-import { updateUserProfile, updateUserAuthPassword } from '@/utils/databaseQuery'; 
+import { updateUserProfile, updateUserAuthPassword, isUsernameUnique } from '@/utils/databaseQuery'; 
 
 export async function POST(request: Request) {
   try {
     
     // getting needed information from request
     const { email, password, updatedFields } = await request.json();
+
+    // If username is being updated, check uniqueness first
+    if (updatedFields.username) {
+      const unique = await isUsernameUnique(updatedFields.username);
+      if (!unique) {
+        return NextResponse.json({ message: "Username is already taken. Please choose another one." }, { status: 400 });
+      } else (
+        console.log("here")
+      )
+    }
 
     // compare password in db to changed password
     const passwordChanged = updatedFields.password && updatedFields.password !== password;
