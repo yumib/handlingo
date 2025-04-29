@@ -12,9 +12,7 @@ export async function POST(request: Request) {
       const unique = await isUsernameUnique(updatedFields.username);
       if (!unique) {
         return NextResponse.json({ message: "Username is already taken. Please choose another one." }, { status: 400 });
-      } else (
-        console.log("here")
-      )
+      }
     }
 
     // compare password in db to changed password

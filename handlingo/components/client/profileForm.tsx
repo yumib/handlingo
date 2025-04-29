@@ -29,51 +29,8 @@ export default function AccountForm({ user }: { user: User }) {
   ); // Store the URL of the profile picture
   const [imageFile, setImageFile] = useState<File | null>(null); // Track the selected image file
   const [firstName, setFirstName] = useState("name"); // create state
-  const [isEditable, setIsEditable] = useState(false); // current state when user hasn't pressed button
-  const inputRef = useRef<HTMLInputElement>(null); //first name
-
-  // first name edit
-  const handleEditClick = () => {
-    setIsEditable(true); // enable editing when the pencil is clicked
-    setTimeout(() => {
-      inputRef.current?.focus();
-    }, 0);
-  };
-
-  // last name
   const [lastName, setLastName] = useState("name");
-  const [isLastEditable, setIsLastEditable] = useState(false); // last name
-  const inputLastRef = useRef<HTMLInputElement>(null); //last name
-  const handleLastEditClick = () => {
-    setIsLastEditable(true); // change
-    setTimeout(() => {
-      inputLastRef.current?.focus(); //change
-    }, 0);
-  };
-
-  // user name
   const [userName, setUserName] = useState("name");
-  const [isUserEditable, setIsUserEditable] = useState(false); // last name
-  const inputUserRef = useRef<HTMLInputElement>(null); //last name
-  const handleUserEditClick = () => {
-    setIsUserEditable(true); // change
-    setTimeout(() => {
-      inputUserRef.current?.focus(); //change
-    }, 0);
-  };
-
-  // password
-  // user name
-  const [userP, setP] = useState("name");
-  const [isPEditable, setIsPEditable] = useState(false); // last name
-  const inputPRef = useRef<HTMLInputElement>(null); //last name
-  const handlePEditClick = () => {
-    setIsPEditable(true); // change
-    setTimeout(() => {
-      inputPRef.current?.focus(); //change
-    }, 0);
-  };
-
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -292,19 +249,6 @@ export default function AccountForm({ user }: { user: User }) {
         <div
           className={`${styles["flex_container"]} form-widget w-full max-w-xl p-6`}
         >
-          {/* <div className = "relative w-full"> */}
-          {/* here is where the button can be */}
-          {/* <button
-            // calls handle submit on click
-            onClick={handleSubmit}
-            disabled={loading}
-            className="py-2 px-4 mt-4 rounded-sm text-black font-semibold text-[18px] bg-[#63A5C5] transition-colors duration-200 disabled:opacity-50 absolute top-12 right-48"
-            style={{
-              backgroundColor: "#6098B3",
-            }}
-          >
-            {loading ? "Loading ..." : "Save Changes"}
-          </button> */}
           <div className="flex justify-center mb-3">
             <p className="font-fira text-3xl font-extrabold"> My Profile</p>
           </div>
@@ -365,92 +309,3 @@ export default function AccountForm({ user }: { user: User }) {
     </div>
   );
 }
-
-// const OldInputs = () => {
-//   return (
-//     <>
-//       <div className="border border-black flex flex-col -mb-px">
-//         <label htmlFor="username" className="font-nunito text-xl font-semibold">
-//           Username
-//         </label>
-//         <div className="flex justify-between">
-//           <input
-//             className="mb-0 border border-transparent font-nunito font-light"
-//             ref={inputUserRef}
-//             id="username"
-//             type="text"
-//             value={username || ""}
-//             onChange={(e) => setUsername(e.target.value)}
-//             disabled={!isUserEditable}
-//           />
-//           <img
-//             src="/assets/pencil-edit-button.png"
-//             alt="Edit"
-//             className="w-6 h-6 cursor-pointer"
-//             onClick={handleUserEditClick} //handle click to enable editing
-//           />
-//         </div>
-//       </div>
-//       <div className="border border-black flex flex-col -mb-px">
-//         <label htmlFor="email" className="font-nunito text-xl font-semibold">
-//           Email (Cannot be changed)
-//         </label>
-//         <div className="flex justify-between">
-//           <input
-//             className="mb-0 border border-transparent"
-//             id="email"
-//             type="text"
-//             value={email || ""}
-//             disabled
-//             onChange={(e) => setEmail(e.target.value)}
-//           />
-//           <img src="/assets/x-icon.png" className="w-6 h-6 cursor-pointer" />
-//         </div>
-//       </div>
-//       <div className="border border-black flex flex-col -mb-0">
-//         <label htmlFor="password" className="font-nunito text-xl font-semibold">
-//           Password
-//         </label>
-//         <div className="flex justify-between">
-//           <input
-//             className="mb-0 border border-transparent font-nunito font-light"
-//             ref={inputPRef}
-//             id="password"
-//             type="text"
-//             value={password || ""}
-//             onChange={(e) => setPassword(e.target.value)}
-//           />
-//           <img
-//             src="/assets/pencil-edit-button.png"
-//             alt="Edit"
-//             className="w-6 h-6 cursor-pointer"
-//             onClick={handlePEditClick} //handle click to enable editing
-//           />
-//         </div>
-//       </div>
-//     </>
-//   );
-// };
-
-// <div className="flex flex-col items-center gap-2">
-//   {" "}
-//   {/* Display the current profile picture */}
-//   {profilePicUrl ? (
-//     <img
-//       src={profilePicUrl}
-//       alt="Profile Picture"
-//       className="w-32 h-32 rounded-full object-cover border border-gray-400"
-//     />
-//   ) : (
-//     <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-sm">
-//       No image
-//     </div>
-//   )}
-//   {/* File input for new profile picture */}
-//   <input
-//     type="file"
-//     accept="image/*"
-//     onChange={handleProfilePicChange}
-//     className="text-sm"
-//   />
-// </div>
