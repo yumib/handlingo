@@ -2,14 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams, useParams, useRouter } from "next/navigation";
-import Layout from '@/components/ui/layout'; 
 import CameraFeed from "@/components/client/CameraFeed";
 import VideoPlayer from "@/components/ui/lessonVid";
 // make a list that counts through the questions once we've hit the last one 
 // display "congrats you finished the lesson" and give points
 
 const QuestionPage = () => {
-
   // not sure what this does
   const router = useRouter();
   const params = useParams();
@@ -110,28 +108,78 @@ const QuestionPage = () => {
   };
 
   console.log(videoUrl)
+  
   return (
-    // display data
-    <Layout>
-    <div>
-      <h1>{question.title}</h1>
-      <p>{question.header}</p>
-      <p>{question.description}</p>
-      <p>{question.correct_answer}</p>
-      <p>FeedBack:{feedback}</p>
-      <CameraFeed
-      targetLetter={question.correct_answer}
-      onNext={()=>{
-        setPointsAwarded(false);
-        setSelectedAnswer(null);
-        setFeedback("");
-      }}
-      onPrediction={handlePrediction}
-      />
-      <VideoPlayer videoUrl={videoUrl} />
+    //Page Container
+    <div className="flex justify-center items-center h-[calc(100vh-5rem)]">
+    {/* Box to hold everything */}
+    <div className= "flex flex-col h-[90vh] min-w-48 w-[175vh] border-2 border-black"> 
+      
+      {/* subsection title + progress bar */}
+      <div className= "flex w-full h-1/6 bg-pink-200"> 
+        {/* title */}
+        <div className="text-3xl font-bold pl-7 pb-5 font-fira text-black">
+          {question.title}
+        </div>
+        
+        {/* lesson progress bar -- PENDING -- THIS IS USING FAKE NUMBER RN */}
+        <div className="flex pt-2 gap-1.5 w-6/12 pr-9">
+            <span className="text-sm text-gray-600 font-nunito">
+              {Math.round(10)}%
+            </span>
+            <div className="w-full h-4 border border-black bg-white rounded-full">
+              <div
+                className="h-full bg-lightBlue rounded-full"
+                style={{ width: `${10}%` }}
+              />
+            </div> 
+        </div>
+      </div>
+
+
+      {/* Lesson Content */}
+      <div className="flex flex-col w-full h-full bg-blue-400">
+        
+        {/* Top Instructions */}
+        <p>{question.header}</p>
+
+
+        {/* Lesson Stuff */}
+        <div className="flex w-full h-full bg-yellow-300">
+          
+          {/* Left Side */}
+          <div className="flex flex-col w-7/12 h-full justify-center bg-green-300">
+            {/* Video */}
+            <div className="w-[400px] h-[225px]"> 
+              <VideoPlayer videoUrl={videoUrl} />
+            </div>
+            {/* Text Instructions */}
+            <p>{question.description}</p>
+          </div>
+          
+
+          {/* Right Side */}
+          <div className="flex flex-col w-1/2 h-full justify-center bg-purple-300">
+            <CameraFeed
+            targetLetter={question.correct_answer}
+            onNext={()=>{
+              setPointsAwarded(false);
+              setSelectedAnswer(null);
+              setFeedback("");
+            }}
+            onPrediction={handlePrediction}
+            />
+            
+            <p>{question.correct_answer}</p>
+            <p>FeedBack:{feedback}</p>
+          </div>
+
+        </div>
+
+      </div>
+    
     </div>
-    </Layout>
-  );
+    </div>);
 };
 
 export default QuestionPage;
