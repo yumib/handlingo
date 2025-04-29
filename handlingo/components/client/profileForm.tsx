@@ -24,9 +24,7 @@ export default function AccountForm({ user }: { user: User }) {
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
   const [profileErrors, setProfileErrors] = useState<string[]>([]);
-  const [profilePicUrl, setProfilePicUrl] = useState(
-    user.profile_pic_url || ""
-  ); // Store the URL of the profile picture
+  const [profilePicUrl, setProfilePicUrl] = useState(user.profile_pic_url || ""); // Store the URL of the profile picture
   const [imageFile, setImageFile] = useState<File | null>(null); // Track the selected image file
   const [firstName, setFirstName] = useState("name"); // create state
   const [lastName, setLastName] = useState("name");
@@ -105,6 +103,7 @@ export default function AccountForm({ user }: { user: User }) {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
       setImageFile(selectedFile);
+      console.log('here')
     }
   };
 
@@ -145,8 +144,7 @@ export default function AccountForm({ user }: { user: User }) {
 
       // collect updated fields for profile if it has changed
       const updatedFields: { [key: string]: string } = {};
-      if (firstName !== userData.first_name)
-        updatedFields["first_name"] = firstName;
+      if (firstName !== userData.first_name) updatedFields["first_name"] = firstName;
       if (lastName !== userData.last_name) updatedFields["last_name"] = lastName;
       if (username !== userData.username) updatedFields["username"] = username;
       if (email !== userData.email) updatedFields["email"] = email;
