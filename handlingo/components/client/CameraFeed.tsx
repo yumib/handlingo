@@ -251,14 +251,14 @@ export default function CameraFeed({ targetLetter, onNext, onPrediction }: { tar
   }, [model, handLandmarker, isVideoReady]); //not sure if need or dont need handLandmarker
 
   return (
-    <div>
+    <div className="flex justify-center items-center p-0 m-0 overflow-hidden">
       {/*<video ref={videoRef} autoPlay playsInline muted width={640} height={360} />*/}
       <CameraComponent onFrameCaptured={processFrame} />
-      <div>
+      {/*<div>
         <h2>Status: {status.toUpperCase()}</h2>
         {status === 'yellow' && <p>Hold for {3 - holdTime}s...</p>}
         {status === 'green' && <button onClick={onNext}>Next</button>}
-      </div>
+      </div>*/}
     </div>
   );
 

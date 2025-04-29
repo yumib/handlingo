@@ -116,9 +116,9 @@ const QuestionPage = () => {
     <div className= "flex flex-col h-[90vh] min-w-48 w-[175vh] border-2 border-black"> 
       
       {/* subsection title + progress bar */}
-      <div className= "flex w-full h-1/6 bg-pink-200"> 
+      <div className= "flex w-full h-[10vh] py-5 justify-between"> 
         {/* title */}
-        <div className="text-3xl font-bold pl-7 pb-5 font-fira text-black">
+        <div className="text-3xl font-bold pl-7 font-fira text-black">
           {question.title}
         </div>
         
@@ -138,43 +138,58 @@ const QuestionPage = () => {
 
 
       {/* Lesson Content */}
-      <div className="flex flex-col w-full h-full bg-blue-400">
+      <div className="flex flex-col w-full h-full px-5">
         
         {/* Top Instructions */}
-        <p>{question.header}</p>
+        <p className="text-xl font-medium font-fira text-black my-[5vh]">{question.header}</p>
 
 
         {/* Lesson Stuff */}
-        <div className="flex w-full h-full bg-yellow-300">
+        <div className="flex w-full h-[70dv] justify-start items-center">
           
           {/* Left Side */}
-          <div className="flex flex-col w-7/12 h-full justify-center bg-green-300">
+          <div className="flex flex-col w-7/12 items-center">
             {/* Video */}
-            <div className="w-[400px] h-[225px]"> 
+            <div className="w-[530px] pb-5"> 
               <VideoPlayer videoUrl={videoUrl} />
             </div>
             {/* Text Instructions */}
-            <p>{question.description}</p>
+            <p className="w-9/12 text-base font-medium font-fira text-black">
+              {question.description}
+            </p>
           </div>
           
 
           {/* Right Side */}
-          <div className="flex flex-col w-1/2 h-full justify-center bg-purple-300">
-            <CameraFeed
-            targetLetter={question.correct_answer}
-            onNext={()=>{
-              setPointsAwarded(false);
-              setSelectedAnswer(null);
-              setFeedback("");
-            }}
-            onPrediction={handlePrediction}
-            />
+          <div className="flex flex-col w-1/2 justify-start items-center">
             
-            <p>{question.correct_answer}</p>
-            <p>FeedBack:{feedback}</p>
+            {/* Camera Feed */}
+            <div className="rounded-2xl overflow-hidden w-[450px] scale-x-[-1]"> 
+              <CameraFeed
+              targetLetter={question.correct_answer}
+              onNext={()=>{
+                setPointsAwarded(false);
+                setSelectedAnswer(null);
+                setFeedback("");
+              }}
+              onPrediction={handlePrediction}
+              />
+            </div>
+
+            {/* Traffic Light Feedback */}
+            <p className="pt-5">Correct Answer: {question.correct_answer}</p>
+            <p>FeedBack: {feedback}</p>
           </div>
 
         </div>
+
+        {/* Next Button */}
+        <button 
+          className="absolute bottom-[5%] right-[5%] text-xl font-bold justify-end font-fira text-black px-6 py-2 rounded-xl bg-darkBlue"//onClick={handlePrediction}>
+          >
+          NEXT
+        </button>
+
 
       </div>
     
