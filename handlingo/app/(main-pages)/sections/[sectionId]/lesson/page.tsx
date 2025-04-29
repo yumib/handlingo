@@ -1,5 +1,5 @@
 "use client";
-
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useSearchParams, useParams, useRouter } from "next/navigation";
 import Layout from '@/components/ui/layout'; 
@@ -61,8 +61,18 @@ const QuestionPage = () => {
     fetchData();
   }, [params.sectionId, searchParams]);
   
+// replace with an image
+  // if (loading) return <p>Loading question...</p>;
 
-  if (loading) return <p>Loading question...</p>;
+  if (loading){
+    return (
+      <div style={{display: "flex", justifyContent: "center", alignItems: "center", height: "100vh"}}>
+        <Image src="/assets/loading-pimp.png" alt="Redirecting..." width={200} height={200} />
+      </div>
+    );
+  }
+
+
   if (!question) return <p>Question not found.</p>;
 
 

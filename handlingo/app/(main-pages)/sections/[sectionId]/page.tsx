@@ -1,5 +1,5 @@
 "use client";
-
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 
@@ -19,7 +19,10 @@ const SectionPage = () => {
 
                 // updates the database w/ new user using file "../api/section/[sectionId]/route.ts"
                 const res = await fetch(`/api/section/${params.sectionId}`);
+                console.log(res);
                 const data = await res.json();
+
+                console.log(data);
 
                 if (!res.ok) throw new Error(data.error);
 
@@ -41,9 +44,21 @@ const SectionPage = () => {
     }, [params, router]);
 
     // html to show redirection processing
-    if (loading) return <p>Loading...</p>;
+    // if (loading) return <p>Loading...</p>;
+    if (loading || !params?.sectionId) {
+        return (
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+                <Image src="/assets/loading-pimp.png" alt="Loading..." width={200} height={200} />
+            </div>
+        );
+    }
 
-    return <p>Redirecting...</p>;
+//    return <p>Redirecting...</p>;
+    return (
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+            <Image src="/assets/loading-pimp.png" alt="Redirecting..." width={200} height={200} />
+        </div>
+    );
 };
 
 export default SectionPage;

@@ -15,7 +15,6 @@ export default async function SignIn(props: { searchParams: Promise<Message> }) 
   const searchParams = await props.searchParams;
 
   return (
-      
       <form className="relative flex-1 flex flex-col min-w-48 max-w-96 w-3/12 z-10">
       {/* Log In Box */}
       <div className="flex flex-col items-center space-y-4 p-6 bg-lightBlue rounded-lg">
