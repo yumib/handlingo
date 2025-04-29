@@ -30,10 +30,11 @@ export default function AccountForm({ user }: { user: User }) {
   const [imageFile, setImageFile] = useState<File | null>(null); // Track the selected image file
   const [firstName, setFirstName] = useState("name"); // create state
   const [lastName, setLastName] = useState("name");
-  const [userName, setUserName] = useState("name");
-  const [username, setUsername] = useState("");
+  const [username, setUsername] = useState("name");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [userData, setUserData] = useState<User>(user);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
   let initialFistName = "";
   let initialLastName = "";
 
@@ -68,10 +69,19 @@ export default function AccountForm({ user }: { user: User }) {
 
   //getProfile function, fills in the form fields with the passed user object
   const getProfile = useCallback(async () => {
+    const getAccessToken = async () => {
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.getSession();
+      if (data?.session?.access_token) {
+        setAccessToken(data.session.access_token);
+      }
+    };
     try {
       setLoading(true);
 
       if (user) {
+        getAccessToken();
+        setUserData(user);
         setFirstName(user.first_name);
         setLastName(user.last_name);
         setUsername(user.username);
@@ -84,7 +94,7 @@ export default function AccountForm({ user }: { user: User }) {
     } finally {
       setLoading(false);
     }
-  }, [user, supabase]);
+  }, [user]);
 
   useEffect(() => {
     getProfile();
@@ -133,36 +143,20 @@ export default function AccountForm({ user }: { user: User }) {
       // Upload image if there's a new one
       const newProfilePicUrl = await uploadProfilePic();
 
-      // TODO: SPLIT FULL NAME INTO FIRST AND LAST NAME BEFORE
-      //       ASSIGNING IT TO UPDATED FIELDS OBJ
-      // fullName;
-
       // collect updated fields for profile if it has changed
-      // {* Prepare an object with any updated fields, limited to the keys defined in the (User) *}
       const updatedFields: { [key: string]: string } = {};
-      if (firstName !== user.first_name)
+      if (firstName !== userData.first_name)
         updatedFields["first_name"] = firstName;
-      if (lastName !== user.last_name) updatedFields["last_name"] = lastName;
-      if (username !== user.username) updatedFields["username"] = username;
-      if (email !== user.email) updatedFields["email"] = email;
-      if (password !== user.password) updatedFields["password"] = password;
+      if (lastName !== userData.last_name) updatedFields["last_name"] = lastName;
+      if (username !== userData.username) updatedFields["username"] = username;
+      if (email !== userData.email) updatedFields["email"] = email;
+      if (password !== userData.password) updatedFields["password"] = password;
 
       // error handling   
-      if (!firstName.trim()) {
-        errors.push("First name cannot be empty");
-      }
-      
-      if (!lastName.trim()) {
-        errors.push("Last name cannot be empty");
-      }
-
-      if (!username.trim()) {
-        errors.push("Username cannot be empty");
-      }
-
-      if (password.length <= 5) {
-        errors.push("Password must be at least 6 characters long")
-      }
+      if (!firstName.trim()) errors.push("First name cannot be empty");
+      if (!lastName.trim()) errors.push("Last name cannot be empty");
+      if (!username.trim()) errors.push("Username cannot be empty");
+      if (password.length <= 5) errors.push("Password must be at least 6 characters long")
 
       // update profile info
       if (Object.keys(updatedFields).length > 0) {
@@ -171,9 +165,10 @@ export default function AccountForm({ user }: { user: User }) {
         const res = await fetch("../api/updateProfile", {
           method: "POST",
           body: JSON.stringify({
-            email: user.email,
-            password: user.password,
+            email: userData.email,
+            password: userData.password,
             updatedFields,
+            access_token: accessToken
           }),
           headers: { "Content-Type": "application/json" },
         });
@@ -188,6 +183,12 @@ export default function AccountForm({ user }: { user: User }) {
         if (res.ok && errors.length === 0) {
           if (result.message === "Profile updated successfully") {
             alert("Profile updated!");
+
+            await supabase.auth.signInWithPassword({
+              email: email,
+              password: password,
+            });
+            
             // refetch the profile data after update without reloading entire page
             await fetchProfileData();
           }
@@ -223,6 +224,7 @@ export default function AccountForm({ user }: { user: User }) {
 
       if (data.internalUser) {
         // update profile state with new data from the server
+        setUserData(data.internalUser);
         setFirstName(data.internalUser.first_name);
         setLastName(data.internalUser.last_name);
         initialFistName = data.internalUser.first_name;
@@ -232,10 +234,11 @@ export default function AccountForm({ user }: { user: User }) {
         setEmail(data.internalUser.email);
         setPassword(data.internalUser.password);
         setProfilePicUrl(data.internalUser.profile_pic_url);
-        setLoading(false);
       }
     } catch (error) {
       console.error("Error fetching profile data:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -278,7 +281,7 @@ export default function AccountForm({ user }: { user: User }) {
             <UserInputField
               label="Email"
               userDataValue={email}
-              setValueChange={setUserName}
+              setValueChange={setUsername}
               isPasswordField={false}
               isLocked={true}
             />

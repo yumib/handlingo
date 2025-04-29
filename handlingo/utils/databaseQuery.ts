@@ -137,8 +137,15 @@ export async function updateUserProfile(email: string, updatedFields: Record<str
 }
 
 // update Supabase Auth password
-export async function updateUserAuthPassword(newPassword: string) {
+export async function updateUserAuthPassword(newPassword: string, access_token: string) {
     const supabase = await initializeSupabase(); // Make sure Supabase is ready
+
+    // Inject the token into the auth state
+    await supabase.auth.setSession({
+        access_token: access_token,
+        refresh_token: '', // not needed here
+      });
+      
     const { error } = await supabase.auth.updateUser({ password: newPassword });
 
     if (error) {
