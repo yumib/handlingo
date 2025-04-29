@@ -88,30 +88,45 @@ export const signUpAction = async (formData: FormData) => {
 };
 
 export const signInAction = async (formData: FormData) => {
-
-  // gets info from form 
   const username = formData.get("username") as string;
   const password = formData.get("password") as string;
   const supabase = await createClient();
 
-  // db query to find user on User_Table in file ./utils/databaseQuery.ts
+  // 1) Lookup in your users table
   const user = await getUserByUsername(username);
-
   if (!user) {
-    return encodedRedirect("error", "/sign-in", "User not found or not authorized.");
+    // No such username
+    return encodedRedirect(
+      "error",
+      "/sign-in",
+      "User not found or not authorized."
+    );
   }
 
-  // signs in user through Auth table
+  // 2) Try to sign in via Supabase Auth
   const { error } = await supabase.auth.signInWithPassword({
     email: user.email,
     password,
   });
 
   if (error) {
-    return encodedRedirect("error", "/", error.message);
+    // 2a) Wrong password specifically
+    if (
+      error.status === 400 &&
+      /invalid login credentials/i.test(error.message)
+    ) {
+      return encodedRedirect(
+        "error",
+        "/sign-in",
+        "Incorrect password. Please try again."
+      );
+    }
+    // 2b) Any other Auth error
+    return encodedRedirect("error", "/sign-in", error.message);
   }
-  // if authenticaed go to dashboard page
-  revalidatePath('/', 'layout')
+
+  // 3) Success → refresh cache + go to dashboard
+  revalidatePath("/", "layout");
   redirect("/dashboard");
 };
 
