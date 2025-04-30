@@ -42,7 +42,7 @@ export const signUpAction = async (formData: FormData) => {
   
   if (success == false) {
     console.error("Not able to add user to User_Table");
-    return encodedRedirect("error", "/sign-up", "Not able to add user to User_Table");
+    return encodedRedirect("error", "/sign-up", "Username or Email already exists, try again");
   }
 
   if (error) {
@@ -51,7 +51,7 @@ export const signUpAction = async (formData: FormData) => {
   } else {
     return encodedRedirect(
       "success",
-      "/",
+      "/sign-in",
       "Thanks for signing up! You can now log in.",
     );
   }

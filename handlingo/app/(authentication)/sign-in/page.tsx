@@ -10,11 +10,19 @@ import Image from "next/image";
 
 
 
-export default async function SignIn(props: { searchParams: Promise<Message> }) {
+export default async function SignIn(props: { searchParams: Promise<Record<string, string>> }) {
+  let searchParams: { [key: string]: string | string[] | undefined } = {};
 
-  // not sure what this does tbh
-  const searchParams = await props.searchParams;
-
+  try {
+    const rawParams = await props.searchParams;
+    if (typeof rawParams?.message === "string") {
+      searchParams = JSON.parse(decodeURIComponent(rawParams.message));
+    } else {
+      searchParams = rawParams;
+    }
+  } catch (e) {
+    console.error("Failed to parse searchParams", e);
+  }
   return (
       <form className="relative flex-1 flex flex-col min-w-48 max-w-96 w-3/12 z-10">
       {/* Log In Box */}
@@ -50,7 +58,7 @@ export default async function SignIn(props: { searchParams: Promise<Message> }) 
             required
           /> 
         </div>
-
+        {/* Error Handling from the sign up page */}
         {/** Error Handling **/}
         <PopUp message={searchParams} />
         {/** -------------- **/}
@@ -66,7 +74,6 @@ export default async function SignIn(props: { searchParams: Promise<Message> }) 
               Forgot your password?
         </Link>
       
-      {/* <FormMessage message={searchParams} /> */}
       </div> {/* end blue box container */}
     </form> 
   );
