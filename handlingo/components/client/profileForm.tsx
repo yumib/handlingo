@@ -1,5 +1,6 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { PopUp } from "../ui/errorHandling";
+import { use, useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 
 // CSS Modules
@@ -21,6 +22,8 @@ interface User {
 
 export default function AccountForm({ user }: { user: User }) {
   // setting information for the profile page
+  const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
+  const [nameError, setNameError] = useState<string | null>(null);
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
   const [profileErrors, setProfileErrors] = useState<string[]>([]);
@@ -41,29 +44,53 @@ export default function AccountForm({ user }: { user: User }) {
   //////////////////////
 
   const [fullName, setFullName] = useState("");
-
   const handleNameSubmit = (val: string) => {
     if (!/^[a-zA-Z\s]+$/.test(val)) {
-      // TODO: Error message here
-      alert("Only letters and spaces, my dude.");
+      setNameError("Only letters and spaces are allowed.");
       return;
     }
-
+  
+    setNameError(null); // Clear error if valid
+  
     if (!val) {
       setFirstName(initialFistName);
       setLastName(initialLastName);
     }
-
+  
     const [first, ...last] = val.trim().split(" ");
     const updatedFirstName = first;
     const updatedLastName = last.join(" ");
-
+  
     setFirstName(updatedFirstName);
     setLastName(updatedLastName);
-
-    // Send to controller, backend, etc.
+  
     console.log("Submitted:", { updatedFirstName, updatedLastName });
   };
+
+  /////
+  // const handleNameSubmit = (val: string) => {
+  //   if (!/^[a-zA-Z\s]+$/.test(val)) {
+  //     // TODO: Error message here
+  //     alert("Only letters and spaces, my dude.");
+  //     return;
+  //   }
+
+  //   if (!val) {
+  //     setFirstName(initialFistName);
+  //     setLastName(initialLastName);
+  //   }
+
+  //   const [first, ...last] = val.trim().split(" ");
+  //   const updatedFirstName = first;
+  //   const updatedLastName = last.join(" ");
+
+  //   setFirstName(updatedFirstName);
+  //   setLastName(updatedLastName);
+
+  //   // Send to controller, backend, etc.
+  //   console.log("Submitted:", { updatedFirstName, updatedLastName });
+  // };
+  ////////
 
   //getProfile function, fills in the form fields with the passed user object
   const getProfile = useCallback(async () => {
@@ -105,6 +132,16 @@ export default function AccountForm({ user }: { user: User }) {
       }
     };
   }, [profilePicUrl]);
+
+  useEffect(() => {
+    if (profileSuccess) {
+      const timer = setTimeout(() => {
+        setProfileSuccess(null);
+      }, 3000); // hide after 4 seconds
+  
+      return () => clearTimeout(timer);
+    }
+  }, [profileSuccess]);
 
   // handle profile picture change
   const handleProfilePicChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -219,7 +256,7 @@ export default function AccountForm({ user }: { user: User }) {
         
         if (res.ok && errors.length === 0) {
           if (result.message === "Profile updated successfully") {
-            alert("Profile updated!");
+            setProfileSuccess("Profile updated!"); //change to the state
 
             await supabase.auth.signInWithPassword({
               email: email,
@@ -235,9 +272,9 @@ export default function AccountForm({ user }: { user: User }) {
       // @JERRY here is where you would handle showing the errors however u want 
       if (errors.length > 0) {
         setProfileErrors(errors); // save errors in state if you want to keep them
-        alert(errors.join("\n")); // show all errors in one alert, line by line (temporary)
+        // alert(errors.join("\n")); // show all errors in one alert, line by line (temporary)
         // Now fetch fresh profile data after alert is closed
-        await fetchProfileData();
+        // await fetchProfileData();
         return;
       }
 
@@ -304,6 +341,7 @@ export default function AccountForm({ user }: { user: User }) {
             setFullName={setFullName}
             onSubmit={handleNameSubmit}
           />
+          
 
           {/* Input Fields */}
           <p className="font-fira text-xl" style={{color: "#626367"}}>Security Settings</p>
@@ -330,6 +368,26 @@ export default function AccountForm({ user }: { user: User }) {
               isLocked={false}
             />
           </>
+
+          {/* Shows red message for invalid name input */}
+          {nameError && (
+            <div className="flex justify-center w-full mt-2">
+              <PopUp message={{ error: nameError }} />
+            </div>
+          )}
+          
+          {/* Shows list of form validation errors */}
+          {profileErrors.length > 0 && (
+            <div className="flex justify-center w-full mt-4">
+              <PopUp message={{ error: profileErrors }} />
+            </div>
+          )}
+
+          {/* Shows green confirmation message */}
+          {profileSuccess && (
+            <PopUp message={{ success: profileSuccess }} />
+          )}
+
           <div className="flex justify-center">
             <button
               // calls handle submit on click
