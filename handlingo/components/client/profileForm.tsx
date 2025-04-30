@@ -24,16 +24,15 @@ export default function AccountForm({ user }: { user: User }) {
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
   const [profileErrors, setProfileErrors] = useState<string[]>([]);
-  const [profilePicUrl, setProfilePicUrl] = useState(
-    user.profile_pic_url || ""
-  ); // Store the URL of the profile picture
+  const [profilePicUrl, setProfilePicUrl] = useState(""); // Store the URL of the profile picture
   const [imageFile, setImageFile] = useState<File | null>(null); // Track the selected image file
   const [firstName, setFirstName] = useState("name"); // create state
   const [lastName, setLastName] = useState("name");
-  const [userName, setUserName] = useState("name");
-  const [username, setUsername] = useState("");
+  const [username, setUsername] = useState("name");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [userData, setUserData] = useState<User>(user);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
   let initialFistName = "";
   let initialLastName = "";
 
@@ -68,60 +67,107 @@ export default function AccountForm({ user }: { user: User }) {
 
   //getProfile function, fills in the form fields with the passed user object
   const getProfile = useCallback(async () => {
+    const getAccessToken = async () => {
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.getSession();
+      if (data?.session?.access_token) {
+        setAccessToken(data.session.access_token);
+      }
+    };
     try {
       setLoading(true);
 
       if (user) {
+        getAccessToken();
+        setUserData(user);
         setFirstName(user.first_name);
         setLastName(user.last_name);
         setUsername(user.username);
         setEmail(user.email);
         setPassword(user.password);
-        setProfilePicUrl(user.profile_pic_url);
+        if (user.profile_pic_url) setProfilePicUrl(user.profile_pic_url);
       }
     } catch (error) {
       alert("Error loading user data!");
     } finally {
       setLoading(false);
     }
-  }, [user, supabase]);
+  }, [user]);
 
   useEffect(() => {
     getProfile();
   }, [user, getProfile]);
 
+  useEffect(() => {
+    return () => {
+      if (profilePicUrl?.startsWith("blob:")) {
+        URL.revokeObjectURL(profilePicUrl);
+      }
+    };
+  }, [profilePicUrl]);
+
   // handle profile picture change
   const handleProfilePicChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const selectedFile = e.target.files[0];
-      setImageFile(selectedFile);
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // @JERRY hook onto this error too pls
+    if (!file.type.startsWith("image/")) {
+      alert("Please select a valid image file (jpg, png, etc).");
+      return;
     }
+
+    setImageFile(file);
+    const previewUrl = URL.createObjectURL(file);
+    setProfilePicUrl(previewUrl); // Show preview before submitting
   };
 
   // upload image to supabase
   const uploadProfilePic = async () => {
     if (!imageFile) return;
-    const filePath = `profile_pics/${user.email}/${imageFile.name}`;
+
+    // Get the authenticated user's UID (not the user.id from the user table)
+    const { data: userData, error: authError } = await supabase.auth.getUser();
+    if (authError) {
+      alert("Error getting authenticated user data: " + authError.message);
+      return;
+    }
+
+    const authUID = userData?.user?.id; // This is the UID from supabase.auth (not user.id from the database)
+    console.log('Authenticated UID:', authUID);
+    const sanitizedFileName = imageFile.name.replace(/\s+/g, '-').replace(/[^\w.-]/g, '');
+    // Construct file path using authUID
+    const filePath = `${authUID}/${sanitizedFileName}`;
+    console.log('File path:', filePath);
+
     const { error: uploadError } = await supabase.storage
       .from("profile-pics")
-      .upload(filePath, imageFile, { upsert: true });
+      .upload(filePath, imageFile);
 
     if (uploadError) {
       alert("Error uploading image: " + uploadError.message);
       return;
     }
     // Get public URL
-    const { data: urlData } = supabase.storage
-      .from("profile-pics")
-      .getPublicUrl(filePath);
-    const fileUrl = urlData?.publicUrl;
-    if (!fileUrl) {
-      alert("Couldn't get image URL");
+    // const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+    // .from("profile-pics")
+    // .createSignedUrl(filePath, 60 * 60); // URL valid for 1 hour
+
+    // if (signedUrlError) {
+    //   alert("Could not generate signed URL: " + signedUrlError.message);
+    //   return null;
+    // }
+    const { data } = supabase.storage.from("profile-pics").getPublicUrl(filePath);
+    if (!data) {
+      alert("Error getting public URL");
       return;
     }
+
+    const fileUrl = data?.publicUrl;
+    console.log(fileUrl);
     setProfilePicUrl(fileUrl);
     return fileUrl;
-  };
+    };
 
   // action taken after user clicks update button
   const handleSubmit = async (e: React.FormEvent) => {
@@ -133,36 +179,21 @@ export default function AccountForm({ user }: { user: User }) {
       // Upload image if there's a new one
       const newProfilePicUrl = await uploadProfilePic();
 
-      // TODO: SPLIT FULL NAME INTO FIRST AND LAST NAME BEFORE
-      //       ASSIGNING IT TO UPDATED FIELDS OBJ
-      // fullName;
-
       // collect updated fields for profile if it has changed
-      // {* Prepare an object with any updated fields, limited to the keys defined in the (User) *}
       const updatedFields: { [key: string]: string } = {};
-      if (firstName !== user.first_name)
-        updatedFields["first_name"] = firstName;
-      if (lastName !== user.last_name) updatedFields["last_name"] = lastName;
-      if (username !== user.username) updatedFields["username"] = username;
-      if (email !== user.email) updatedFields["email"] = email;
-      if (password !== user.password) updatedFields["password"] = password;
+      if (firstName !== userData.first_name) updatedFields["first_name"] = firstName;
+      if (lastName !== userData.last_name) updatedFields["last_name"] = lastName;
+      if (username !== userData.username) updatedFields["username"] = username;
+      if (email !== userData.email) updatedFields["email"] = email;
+      if (password !== userData.password) updatedFields["password"] = password;
+      if (newProfilePicUrl && newProfilePicUrl !== userData.profile_pic_url) updatedFields["profile_pic_url"] = newProfilePicUrl; 
+    
 
       // error handling   
-      if (!firstName.trim()) {
-        errors.push("First name cannot be empty");
-      }
-      
-      if (!lastName.trim()) {
-        errors.push("Last name cannot be empty");
-      }
-
-      if (!username.trim()) {
-        errors.push("Username cannot be empty");
-      }
-
-      if (password.length <= 5) {
-        errors.push("Password must be at least 6 characters long")
-      }
+      if (!firstName.trim()) errors.push("First name cannot be empty");
+      if (!lastName.trim()) errors.push("Last name cannot be empty");
+      if (!username.trim()) errors.push("Username cannot be empty");
+      if (password.length <= 5) errors.push("Password must be at least 6 characters long")
 
       // update profile info
       if (Object.keys(updatedFields).length > 0) {
@@ -171,9 +202,10 @@ export default function AccountForm({ user }: { user: User }) {
         const res = await fetch("../api/updateProfile", {
           method: "POST",
           body: JSON.stringify({
-            email: user.email,
-            password: user.password,
+            email: userData.email,
+            password: userData.password,
             updatedFields,
+            access_token: accessToken
           }),
           headers: { "Content-Type": "application/json" },
         });
@@ -188,6 +220,12 @@ export default function AccountForm({ user }: { user: User }) {
         if (res.ok && errors.length === 0) {
           if (result.message === "Profile updated successfully") {
             alert("Profile updated!");
+
+            await supabase.auth.signInWithPassword({
+              email: email,
+              password: password,
+            });
+            
             // refetch the profile data after update without reloading entire page
             await fetchProfileData();
           }
@@ -223,6 +261,7 @@ export default function AccountForm({ user }: { user: User }) {
 
       if (data.internalUser) {
         // update profile state with new data from the server
+        setUserData(data.internalUser);
         setFirstName(data.internalUser.first_name);
         setLastName(data.internalUser.last_name);
         initialFistName = data.internalUser.first_name;
@@ -232,10 +271,11 @@ export default function AccountForm({ user }: { user: User }) {
         setEmail(data.internalUser.email);
         setPassword(data.internalUser.password);
         setProfilePicUrl(data.internalUser.profile_pic_url);
-        setLoading(false);
       }
     } catch (error) {
       console.error("Error fetching profile data:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -278,7 +318,7 @@ export default function AccountForm({ user }: { user: User }) {
             <UserInputField
               label="Email"
               userDataValue={email}
-              setValueChange={setUserName}
+              setValueChange={setUsername}
               isPasswordField={false}
               isLocked={true}
             />
