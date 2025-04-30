@@ -2,6 +2,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
+import LoadingImage from "@/components/ui/loading";
 
 // page that redirects to specific question based on type and question number
 const SectionPage = () => {
@@ -44,21 +45,13 @@ const SectionPage = () => {
     }, [params, router]);
 
     // html to show redirection processing
-    // if (loading) return <p>Loading...</p>;
+    // ** loading screen ** //
     if (loading || !params?.sectionId) {
-        return (
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
-                <Image src="/assets/loading-pimp.png" alt="Loading..." width={200} height={200} />
-            </div>
-        );
+        return <LoadingImage />;
     }
 
-//    return <p>Redirecting...</p>;
-    return (
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
-            <Image src="/assets/loading-pimp.png" alt="Redirecting..." width={200} height={200} />
-        </div>
-    );
+    // ** loading screen ** //
+    return <LoadingImage />
 };
 
 export default SectionPage;
