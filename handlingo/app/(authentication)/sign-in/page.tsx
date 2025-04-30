@@ -4,6 +4,7 @@ import { FormMessage, Message } from "@/components/form-message";
 import { SubmitButton } from "@/components/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PopUp } from "@/components/ui/errorHandling";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -50,6 +51,10 @@ export default async function SignIn(props: { searchParams: Promise<Message> }) 
           /> 
         </div>
 
+        {/** Error Handling **/}
+        <PopUp message={searchParams} />
+        {/** -------------- **/}
+
         {/* Submit Button */}
         {/* goes to file ./app/actions.ts to handle signing in user, function signInAction */}
         <SubmitButton className="w-[calc(95%-20px)] h-10" pendingText="Logging In..." formAction={signInAction}>
@@ -60,8 +65,8 @@ export default async function SignIn(props: { searchParams: Promise<Message> }) 
         <Link className="text-xs text-foreground underline" href="/forgot-password">
               Forgot your password?
         </Link>
-
-      <FormMessage message={searchParams} />
+      
+      {/* <FormMessage message={searchParams} /> */}
       </div> {/* end blue box container */}
     </form> 
   );

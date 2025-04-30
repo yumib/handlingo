@@ -1,5 +1,6 @@
 "use server";
 
+import { FormMessage } from "@/components/form-message";
 import { encodedRedirect } from "@/utils/utils";
 import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
