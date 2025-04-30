@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useParams, useRouter } from "next/navigation";
 import VideoPlayer from "@/components/ui/lessonVid";
+import MultipleChoice from "@/components/client/multipleChoice";
 
 const QuestionPage = () => {
 
@@ -27,6 +28,8 @@ const QuestionPage = () => {
   const [videoUrl, setVideoUrl] = useState("")
   // keeps track of what question the user is on by parsing the url
   const questionNumber = parseInt(searchParams.get("q") || "1", 10);
+  //to track if user has gotten answer correct at some point
+  const [isCorrect, setIsCorrect] = useState(true); // default = true for now. change later
 
   useEffect(() => {
     if (!params.sectionId || isNaN(questionNumber)) return;
@@ -53,8 +56,10 @@ const QuestionPage = () => {
         setVideoUrl(videoData.lessonVid); // set video URL
 
         // Reset UI state for new question
+        setIsCorrect(false); 
         setSelectedAnswer(null);
         setFeedback("");
+        setPointsAwarded(false);
 
       } catch (error) {
         console.error("Error fetching question:", error);
@@ -69,6 +74,22 @@ const QuestionPage = () => {
   if (loading) return <p>Loading question...</p>;
   if (!question) return <p>Question not found.</p>;
 
+  // NEXT QUESTION (button)
+  const handleNextQuestion = () => {
+    const nextQuestionNumber = questionNumber + 1;
+
+    // later should use 'total_question' field / 3 to calculate when to switch
+    // for now its fine. 6 is start of quiz. 11 is start of exam. 15 is end of section
+    let newPhase = "quiz";
+    if (nextQuestionNumber >= 11 && nextQuestionNumber <= 15) {
+      newPhase = "exam"; // go from quiz to exam
+    } 
+
+    // next question
+    router.push(`/sections/${params.sectionId}/${newPhase}?q=${nextQuestionNumber}`);
+  };
+
+  // MC response
   const handleAnswer= async (answer: string) =>{
     if(!question || pointsAwarded)
       {
@@ -78,7 +99,8 @@ const QuestionPage = () => {
   
     if(answer === question.correct_answer)
       {
-        setFeedback("Thats Correct!");
+        setFeedback("Good job! Thats correct!");
+        setIsCorrect(true) //user got answer correct
         if(questionNumber===5 && !pointsAwarded){
         try{
           const result = await fetch("/api/points",{
@@ -108,7 +130,8 @@ const QuestionPage = () => {
         }
       else
       {
-        setFeedback("Thats wrong. Try again.")
+        setIsCorrect(true) // REMOVE LATER. For now, acting as only allow next after user answers question
+        setFeedback(`That is incorrect. The correct answer was ${question.correct_answer}`);
       }
   };
 
@@ -156,15 +179,25 @@ const QuestionPage = () => {
             </div>
 
             {/* Multiple Choice */}
-            {/* <MultipleChoice
-            choices={question.options}
-            selectedAnswer={selectedAnswer}
-            onAnswer={handleAnswer}
-            /> */}
+            <div className="flex">
+              <MultipleChoice
+              choices={question.options}
+              selectedAnswer={selectedAnswer}
+              correctAnswer={question.correct_answer}
+              onAnswer={handleAnswer}/> 
+            </div>
 
-            <p>FeedBack:{feedback}</p>
-            <p>Correct Answer: {question.correct_answer}</p>
+            <p>{feedback}</p>
           </div>
+
+          {/* NEXT button */}
+          <button 
+          disabled={!isCorrect}
+          className="absolute bottom-[5%] right-[5%] text-xl font-bold justify-end font-fira text-black px-6 py-2 rounded-xl bg-darkBlue"//onClick={handlePrediction}>
+          onClick={handleNextQuestion}>
+          NEXT
+          </button>
+
         </div>
     </div>
   </div>
