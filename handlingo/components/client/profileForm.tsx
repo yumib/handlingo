@@ -24,7 +24,7 @@ export default function AccountForm({ user }: { user: User }) {
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
   const [profileErrors, setProfileErrors] = useState<string[]>([]);
-  const [profilePicUrl, setProfilePicUrl] = useState(user.profile_pic_url || ""); // Store the URL of the profile picture
+  const [profilePicUrl, setProfilePicUrl] = useState(""); // Store the URL of the profile picture
   const [imageFile, setImageFile] = useState<File | null>(null); // Track the selected image file
   const [firstName, setFirstName] = useState("name"); // create state
   const [lastName, setLastName] = useState("name");
@@ -85,7 +85,7 @@ export default function AccountForm({ user }: { user: User }) {
         setUsername(user.username);
         setEmail(user.email);
         setPassword(user.password);
-        setProfilePicUrl(user.profile_pic_url);
+        if (user.profile_pic_url) setProfilePicUrl(user.profile_pic_url);
       }
     } catch (error) {
       alert("Error loading user data!");
@@ -98,39 +98,76 @@ export default function AccountForm({ user }: { user: User }) {
     getProfile();
   }, [user, getProfile]);
 
+  useEffect(() => {
+    return () => {
+      if (profilePicUrl?.startsWith("blob:")) {
+        URL.revokeObjectURL(profilePicUrl);
+      }
+    };
+  }, [profilePicUrl]);
+
   // handle profile picture change
   const handleProfilePicChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const selectedFile = e.target.files[0];
-      setImageFile(selectedFile);
-      console.log('here')
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // @JERRY hook onto this error too pls
+    if (!file.type.startsWith("image/")) {
+      alert("Please select a valid image file (jpg, png, etc).");
+      return;
     }
+
+    setImageFile(file);
+    const previewUrl = URL.createObjectURL(file);
+    setProfilePicUrl(previewUrl); // Show preview before submitting
   };
 
   // upload image to supabase
   const uploadProfilePic = async () => {
     if (!imageFile) return;
-    const filePath = `profile_pics/${user.email}/${imageFile.name}`;
+
+    // Get the authenticated user's UID (not the user.id from the user table)
+    const { data: userData, error: authError } = await supabase.auth.getUser();
+    if (authError) {
+      alert("Error getting authenticated user data: " + authError.message);
+      return;
+    }
+
+    const authUID = userData?.user?.id; // This is the UID from supabase.auth (not user.id from the database)
+    console.log('Authenticated UID:', authUID);
+    const sanitizedFileName = imageFile.name.replace(/\s+/g, '-').replace(/[^\w.-]/g, '');
+    // Construct file path using authUID
+    const filePath = `${authUID}/${sanitizedFileName}`;
+    console.log('File path:', filePath);
+
     const { error: uploadError } = await supabase.storage
       .from("profile-pics")
-      .upload(filePath, imageFile, { upsert: true });
+      .upload(filePath, imageFile);
 
     if (uploadError) {
       alert("Error uploading image: " + uploadError.message);
       return;
     }
     // Get public URL
-    const { data: urlData } = supabase.storage
-      .from("profile-pics")
-      .getPublicUrl(filePath);
-    const fileUrl = urlData?.publicUrl;
-    if (!fileUrl) {
-      alert("Couldn't get image URL");
+    // const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+    // .from("profile-pics")
+    // .createSignedUrl(filePath, 60 * 60); // URL valid for 1 hour
+
+    // if (signedUrlError) {
+    //   alert("Could not generate signed URL: " + signedUrlError.message);
+    //   return null;
+    // }
+    const { data } = supabase.storage.from("profile-pics").getPublicUrl(filePath);
+    if (!data) {
+      alert("Error getting public URL");
       return;
     }
+
+    const fileUrl = data?.publicUrl;
+    console.log(fileUrl);
     setProfilePicUrl(fileUrl);
     return fileUrl;
-  };
+    };
 
   // action taken after user clicks update button
   const handleSubmit = async (e: React.FormEvent) => {
@@ -149,6 +186,8 @@ export default function AccountForm({ user }: { user: User }) {
       if (username !== userData.username) updatedFields["username"] = username;
       if (email !== userData.email) updatedFields["email"] = email;
       if (password !== userData.password) updatedFields["password"] = password;
+      if (newProfilePicUrl && newProfilePicUrl !== userData.profile_pic_url) updatedFields["profile_pic_url"] = newProfilePicUrl; 
+    
 
       // error handling   
       if (!firstName.trim()) errors.push("First name cannot be empty");
