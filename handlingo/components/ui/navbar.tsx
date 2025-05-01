@@ -53,10 +53,20 @@ const Navbar = () => {
         }}>
         
           <li>
-            <Link href="/dashboard" style={{ font: 'fira', color: 'black', fontWeight: 'bold', fontSize: '24'}}>DASHBOARD</Link>
+            <Link 
+            href="/dashboard" 
+            className="text-black text-lg font-fira font-medium"
+            >
+              DASHBOARD
+              </Link>
           </li>
           <li>
-            <Link href="/profile" style={{ font: 'fira', color: 'black', fontWeight: 'bold', fontSize: '24'}}>PROFILE</Link>
+            <Link 
+            href="/profile" 
+            className="text-black text-lg font-fira font-medium"
+            >
+              PROFILE
+            </Link>
           </li>
           <li>
             <ClientOnly>
