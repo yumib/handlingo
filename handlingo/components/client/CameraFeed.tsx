@@ -6,19 +6,29 @@ import { getLandmarkData } from '@/utils/getLandmarkData';
 import * as handpose from '@tensorflow-models/handpose';
 import { HandLandmarker, HandLandmarkerResult, HandLandmarkerOptions, FilesetResolver } from '@mediapipe/tasks-vision';
 import CameraComponent from '@/components/client/camera';
-import { Fascinate } from 'next/font/google';
-
 import { letter_A, letter_R } from '@/model/predefined_letters';
 
-export default function CameraFeed({ targetLetter, onNext, onPrediction }: { targetLetter: string; onNext: () => void; onPrediction: (predictedLetter: string) => void; }) {
+export default function CameraFeed({ 
+  targetLetter, 
+  onNext, 
+  onPrediction, 
+  status, 
+  setStatus 
+  }: { 
+  targetLetter: string; 
+  onNext: () => void; 
+  onPrediction: (predictedLetter: string) => void; 
+  status: string;
+  setStatus: React.Dispatch<React.SetStateAction<'red' | 'yellow' | 'green'>>;
+  }) {
+
   //const videoRef = useRef<HTMLVideoElement| null>(null);
   const [model, setModel] = useState<tf.LayersModel | null>(null);
-  const [status, setStatus] = useState('red'); // 'red', 'yellow', 'green'
   const [holdTime, setHoldTime] = useState(0);
   const [timerId, setTimerId] = useState<NodeJS.Timeout | null>(null);
   const [handLandmarker, setHandLandmarker] = useState<HandLandmarker | null>(null);
   const [isVideoReady, setIsVideoReady] = useState(false);//tracks if the video is ready to be used
-
+  const [pointsAwarded, setPointsAwarded] = useState(false);// tracks if we've given points for the question already
 
   // This loads the model + calls camera start function
   useEffect(() => {
@@ -59,37 +69,6 @@ export default function CameraFeed({ targetLetter, onNext, onPrediction }: { tar
     loadModel();
     loadHandLandmarker();
   }, []);
-
-  // This loads the model + calls camera start function
-  // useEffect(() => {
-  //   const startCamera = async () => {
-  //     try {
-  //       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-  //       if (videoRef.current) {
-  //         videoRef.current.srcObject = stream;
-  //         console.log("The camera is streaming");
-  //       }
-  //     } catch (error) {
-  //       console.error("Error accessing camera:", error);
-  //     }
-  //   };
-
-  //   startCamera();
-  // }, []);
-
-  // //moved these up here so they get read before processframe
-  // useEffect(()=>{
-  //   if(videoRef.current)
-  //   {
-  //     const video =videoRef.current;
-  //     video.oncanplay=()=>{setIsVideoReady(true);}
-  //     video.onloadeddata = () => {setIsVideoReady(true);}
-  //     video.onerror=()=>{
-  //       console.error("Error loading video");
-  //       setIsVideoReady(false);
-  //     }
-  //   }
-  // },[]);
 
   // timer to make sure user is actually signing correctly & not just accident
   const startHoldTimer = () => {
@@ -147,7 +126,7 @@ export default function CameraFeed({ targetLetter, onNext, onPrediction }: { tar
       if (result && result.landmarks.length > 0) {
         const landmarkData = getLandmarkData(result, 640, 360); //numbers are video dimensions from camera.tsx i was too lazy to grab the variable (cass)
         if (!landmarkData) {
-          console.warn("LandmarkData is emoty");
+          console.warn("LandmarkData is empty");
           return;
         }
         // console.log("Landmark Data: ", landmarkData);
@@ -196,6 +175,7 @@ export default function CameraFeed({ targetLetter, onNext, onPrediction }: { tar
           }
           else if (status == "yellow" && holdTime >= 3) {
             setStatus("green");
+            setPointsAwarded(true);
           }
         }
         else {
@@ -209,8 +189,30 @@ export default function CameraFeed({ targetLetter, onNext, onPrediction }: { tar
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    if (status === "green" && !pointsAwarded) {
+      try {
+        const res = await fetch("/api/points", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          // this is how many points we're giving when we use their camera(during an exam) and they get the sign right
+          body: JSON.stringify({ amount: 5 }), 
+        });
+  
+        if (!res.ok) {
+          const error = await res.json();
+          console.error("Failed to give points:", error);
+        } else {
+          console.log("The points worked");
+        }
+      } catch (error) {
+        console.error("Error giving points:", error);
+      }
+    }
     resetHoldTimer();
+    setPointsAwarded(false);
     onNext();
   };
 
@@ -228,14 +230,14 @@ export default function CameraFeed({ targetLetter, onNext, onPrediction }: { tar
   }, [model, handLandmarker, isVideoReady]); //not sure if need or dont need handLandmarker
 
   return (
-    <div>
+    <div className="flex justify-center items-center p-0 m-0 overflow-hidden">
       {/*<video ref={videoRef} autoPlay playsInline muted width={640} height={360} />*/}
       <CameraComponent onFrameCaptured={processFrame} />
-      <div>
+      {/*<div>
         <h2>Status: {status.toUpperCase()}</h2>
         {status === 'yellow' && <p>Hold for {3 - holdTime}s...</p>}
         {status === 'green' && <button onClick={onNext}>Next</button>}
-      </div>
+      </div>*/}
     </div>
   );
 

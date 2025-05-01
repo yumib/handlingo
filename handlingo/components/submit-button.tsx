@@ -1,3 +1,8 @@
+/* 
+
+Sign Up and Log In functionality
+
+*/
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -16,7 +21,7 @@ export function SubmitButton({
   const { pending } = useFormStatus();
 
   return (
-    <Button type="submit" aria-disabled={pending} {...props}>
+    <Button type="submit" aria-disabled={pending} variant="default" {...props}>
       {pending ? pendingText : children}
     </Button>
   );

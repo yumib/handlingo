@@ -1,37 +1,36 @@
 import { NextResponse } from 'next/server';
-import { updateUserProfile, updateUserEmail, updateUserAuthPassword } from '@/utils/databaseQuery'; // Import your DB logic
+import { updateUserProfile, updateUserAuthPassword, isUsernameUnique } from '@/utils/databaseQuery'; 
 
 export async function POST(request: Request) {
   try {
-    const { email, password, updatedFields } = await request.json();
+    
+    // getting needed information from request
+    const { email, password, updatedFields, access_token } = await request.json();
 
-    const emailChanged = updatedFields.email && updatedFields.email !== email;
-    const passwordChanged = updatedFields.password && updatedFields.password !== password;
-
-    if (emailChanged) {
-      try {
-        await updateUserEmail(updatedFields.email, email);
-        await updateUserAuthPassword(updatedFields.password);
-        console.log("AUTH EMAIL");
-      } catch (e) {
-        console.error('Error updating email in auth table:', e);
-        return NextResponse.json({ message: 'Error updating email in auth table' }, { status: 500 });
-      };
+    // If username is being updated, check uniqueness first
+    if (updatedFields.username) {
+      const unique = await isUsernameUnique(updatedFields.username);
+      if (!unique) {
+        return NextResponse.json({ message: "Username is already taken. Please choose another one." }, { status: 400 });
+      }
     }
 
+    // compare password in db to changed password
+    const passwordChanged = updatedFields.password && updatedFields.password !== password;
+
+    // update password in auth table 
     if (passwordChanged) {
       try {
-        await updateUserEmail(updatedFields.email, email);
-        await updateUserAuthPassword(updatedFields.password);
-        console.log("AUTH PASSWORD");
+        // db query to update password in auth table
+        await updateUserAuthPassword(updatedFields.password, access_token);
       } catch (e) {
         console.error('Error updating password in auth table:', e);
         return NextResponse.json({ message: 'Error updating password in auth table' }, { status: 500 });
       };
     }
     
-    // Call your query function to update the user profile
     try {
+      // db query to update anything that's changed 
       await updateUserProfile(email, updatedFields);
     } catch (e) {
       console.error('Error updating profile:', e);

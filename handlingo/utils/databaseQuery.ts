@@ -1,5 +1,4 @@
 import { createClient } from '@/utils/supabase/server';
-
 let supabase: Awaited<ReturnType<typeof createClient>> | null = null; // Makes client a global var to be used by queries 
 
 async function initializeSupabase() {
@@ -125,7 +124,7 @@ export async function getSectionsbyUnitNum (unitNum: number) {
 export async function updateUserProfile(email: string, updatedFields: Record<string, any>) {
     const supabase = await initializeSupabase(); 
     const { data, error } = await supabase
-        .from("User_Table") // Adjust table name if needed
+        .from("User_Table") 
         .update(updatedFields)
         .eq("email", email);
 
@@ -136,39 +135,16 @@ export async function updateUserProfile(email: string, updatedFields: Record<str
     return null;
 }
 
-// update Supabase Auth email and User Table email
-export async function updateUserEmail(newEmail: string, oldEmail: string) {
-    const supabase = await initializeSupabase();
-    try {
-        // Step 1: Update email in the auth table (if email is part of updatedFields)
-        const { error } = await supabase.auth.updateUser({ email: newEmail });
-
-        if (error) {
-            throw new Error("Error updating email in auth table: ", error);
-        }
-
-        // Step 2: Update the User_Table (excluding password & email since email is updated already)
-        const { data, error: dbError } = await supabase
-            .from('User_Table')
-            .update({ email: newEmail })
-            .eq('email', oldEmail);
-
-        if (dbError) {
-            throw new Error("Error updating user profile in User_Table: " + dbError.message);
-        }
-
-        console.log("User profile updated successfully in both auth and User_Table");
-        return data;
-
-    } catch (error) {
-        console.error("Error updating user profile:", error);
-        return { error: error };
-    }
-}
-
 // update Supabase Auth password
-export async function updateUserAuthPassword(newPassword: string) {
+export async function updateUserAuthPassword(newPassword: string, access_token: string) {
     const supabase = await initializeSupabase(); // Make sure Supabase is ready
+
+    // Inject the token into the auth state
+    await supabase.auth.setSession({
+        access_token: access_token,
+        refresh_token: '', // not needed here
+      });
+      
     const { error } = await supabase.auth.updateUser({ password: newPassword });
 
     if (error) {
@@ -178,8 +154,59 @@ export async function updateUserAuthPassword(newPassword: string) {
     return null;
 }
 
+export async function isUsernameUnique (username: string) {
+    const supabase = await initializeSupabase(); 
+    const { data, error } = await supabase
+        .from("User_Table") 
+        .select("id")
+        .eq("username", username);
+
+    if (error) {
+        console.error('Error checking username uniqueness:', error);
+        return error;
+    }
+
+    // username is unique
+    if (data.length === 0) {
+        return true;
+    }
+
+    return false;
+}
+
 // [SECTIONID] QUERIES:
-// Fetch all questions for a section
+export async function createOrFetchProgress(userId: number, sectionId: number) {
+    const supabase = await initializeSupabase();
+    
+    let progress = await getUserProgress(userId, sectionId);
+    if (!progress) {
+      const { success } = await createNewUserProgress(userId, sectionId);
+      if (!success) throw new Error("Failed to insert new progress row");
+      progress = await getUserProgress(userId, sectionId);
+    }
+    return progress;
+  }
+  
+
+export async function getUserProgress(userId: number, sectionId: number) {
+    const supabase = await initializeSupabase();
+    const { data, error } = await supabase
+        .from("User_Progress_Table")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("section_id", sectionId)
+        .single();
+
+    // check for errors first
+    if (error) {
+        console.error("Error fetching user progress:", error);  // Log the actual error from Supabase
+        return null;  // Return null in case of error
+    }
+
+    // if no data was returned, explicitly return null (no need for a separate check for data === null)
+    return data || null;
+}
+
 export async function getQuestionsForSection(sectionId: number) {
     const supabase = await initializeSupabase();
     const { data, error } = await supabase
@@ -192,21 +219,7 @@ export async function getQuestionsForSection(sectionId: number) {
     return data;
 }
 
-export async function getUserProgress(userId: number, sectionId: number) {
-    const supabase = await initializeSupabase();
-    const { data, error } = await supabase
-        .from("User_Progress_Table")
-        .select("*")
-        .eq("user_id", userId)
-        .eq("section_id", sectionId)
-        .single();
-
-    if (error) throw new Error("Error fetching user progress");
-    return data;
-}
-
-// Fetch a single question by its section Id
-export async function getQuestionById(questionNum: number, sectionId: number) {
+export async function getQuestionByNum(questionNum: number, sectionId: number) {
     const supabase = await initializeSupabase();
     const { data, error } = await supabase
         .from("Question_Table")
@@ -216,5 +229,97 @@ export async function getQuestionById(questionNum: number, sectionId: number) {
         .single();
 
     if (error) throw new Error("Error fetching question");
+    console.log(data)
     return data;
 }
+
+export async function createNewUserProgress(userId: number, sectionId: number) {
+    const supabase = await initializeSupabase();
+    const { data, error } = await supabase
+        .from("User_Progress_Table")
+        .insert([
+            {
+                user_id: userId,
+                completion_status: "incomplete",
+                score: 0,
+                last_attempted_at: new Date().toISOString(),
+                progress_pct: 0,
+                section_id: sectionId
+            }
+        ]);
+
+    if (error) {
+        console.error("Error inserting new user in User_Table:", error);
+        return { success: false, message: error.message };
+    }
+    
+    return { success: true, data };
+}
+
+// Adds points by updating a user's score and returning the new score
+export async function updateUserScore(userId: number, amount: number) {
+    const supabase = await initializeSupabase();
+
+    // selecting the score from the user progress table 
+    const { data, error: fetchError } = await supabase
+        .from("User_Progress_Table")
+        .select("score")
+        .eq("user_id", userId)
+        .single();
+
+    if (fetchError) {
+        console.error("Error fetching score: ", fetchError);
+        throw new Error("Failed to fetch user score.");
+    }
+    const newScore = data.score + amount;
+    if (amount <= 0) {
+        console.log("Ignoring update: score amount not positive.");
+        return { success: false, message: "Score update must be positive." };
+    }
+    
+
+    // updating the score in the database
+    // this might break if the permissions do the same thing as the email 
+    const { error } = await supabase
+        .from("User_Progress_Table")
+        .update({ score: newScore })
+        .eq("user_id", userId);
+
+    if (error) {
+        console.error("Error updating score: ", error);
+        throw new Error("Failed to update user score.");
+    }
+    return { success: true, newScore };
+}
+
+// get url of video lessons
+export const getSignedVideoUrl = async (sectionId: number, questionNum: number) => {
+  const supabase = await initializeSupabase();
+  const path = `section_${sectionId}/question_${questionNum}.mp4`;
+
+  const { data, error } = await supabase
+    .storage
+    .from('lesson-vids')
+    .createSignedUrl(path, 60)
+
+    if (error) {
+        console.error("Error getting lesson vid url: ", error);
+        throw new Error("Failed to get URL to lesson video.");
+    }
+
+  return data.signedUrl;
+}
+export async function updateUserProgress(userId: number, sectionId: number, progress_pct: number) {
+    const supabase = await initializeSupabase();
+    // updating the progress in the database it should be both over all and per lesson
+    // this might break if the permissions do the same thing as the email     
+    const { error } = await supabase
+      .from("User_Progress_Table")
+      .update({ progress_pct })
+      .match({ user_id: userId, section_id: sectionId });
+  
+    if (error) {
+      throw new Error(`Error updating progress: ${error.message}`);
+    }
+    return { success: true };
+};
