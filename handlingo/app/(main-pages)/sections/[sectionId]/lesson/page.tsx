@@ -111,31 +111,47 @@ const QuestionPage = () => {
       {
         setIsCorrect(true); //update flag
         setFeedback("Thats Correct!");
-          if(questionNumber===5 && !pointsAwarded){
-        try{
-          const result = await fetch("/api/points",{
+        const progressAmount=20;
+        //this is the progress section
+        // we could call this on press for the next button
+        try {
+          await fetch("/api/progress", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ amount: 10 }) // the points we're giving in this section(10 points for completing a lesson)
-          
-        });
-          if(!result.ok)
-          {
-            const error = await result.json();
-            console.error("Failed to give points: ",error);
-          }
-          else
-          {
-            console.log("Points given at the end of the lesson");
-            setPointsAwarded(true);
-          }
+            body: JSON.stringify({
+              sectionId: Number(params.sectionId),
+              amount: progressAmount,
+            }),
+          });
+          console.log("Progress updated");
+        } catch (error) {
+          console.error("Failed to update progress", error);
         }
-      
-        catch(error)
-        {
-          console.error("Error updating points/score")
-        }
+        //this is the points section
+        if(questionNumber===5 && !pointsAwarded){
+          try{
+            const result = await fetch("/api/points",{
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ amount: 10 }) // the points we're giving in this section(10 points for completing a lesson)
+            
+          });
+            if(!result.ok)
+            {
+              const error = await result.json();
+              console.error("Failed to give points: ",error);
+            }
+            else
+            {
+              console.log("Points given at the end of the lesson");
+              setPointsAwarded(true);
+            }
+          }
         
+          catch(error)
+          {
+            console.error("Error updating points/score")
+          }
           }
         }
       else

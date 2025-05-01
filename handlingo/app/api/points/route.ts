@@ -20,12 +20,17 @@ export async function POST(request: Request) {
   if (typeof amount !== "number" || amount <= 0) {
     return NextResponse.json({ error: "Invalid amount of points" }, { status: 400 });
   }
+  console.log("Received request to update progress:", { user,  amount});
   // if the profile and amount of points is valid(positive) update the user's score with that amount
   try {
-    await updateUserScore(internalUser.id, amount);
+    const result=await updateUserScore(internalUser.id, amount);
+    if(!result.success)
+    {
+      return NextResponse.json({ error: result.message || "Score update failed" }, { status: 500 });
+    }
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error updating XP:", error);
+    console.error("Error updating score:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
