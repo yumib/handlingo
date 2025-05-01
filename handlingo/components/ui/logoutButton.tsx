@@ -12,7 +12,10 @@ export default function LogoutButton() {
   };
 
   return (
-    <button onClick={handleLogout} style={{font: 'fira', color: 'black', fontWeight: 'bold', fontSize: '24'}} className="btn-logout">
+    <button 
+      onClick={handleLogout} 
+      className="text-black text-lg font-fira font-medium"
+    >
       SIGN OUT
     </button>
   );

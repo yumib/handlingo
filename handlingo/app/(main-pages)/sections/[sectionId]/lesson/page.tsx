@@ -1,5 +1,5 @@
 "use client";
-
+import LoadingImage from "@/components/ui/loading";
 import { useEffect, useState } from "react";
 import { useSearchParams, useParams, useRouter } from "next/navigation";
 import CameraFeed from "@/components/client/CameraFeed";
@@ -74,7 +74,12 @@ const QuestionPage = () => {
   }, [params.sectionId, searchParams]);
   
 
-  if (loading) return <p>Loading question...</p>;
+// ** loading screen ** //
+  if (loading){
+    return <LoadingImage />
+  }
+
+
   if (!question) return <p>Question not found.</p>;
 
 
