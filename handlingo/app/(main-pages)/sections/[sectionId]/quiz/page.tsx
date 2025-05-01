@@ -50,6 +50,11 @@ const QuestionPage = () => {
 
     fetchQuestion();
   }, [params.sectionId, searchParams]);
+  useEffect(() => {
+    setPointsAwarded(false);
+    setSelectedAnswer(null);
+    setFeedback("");
+  }, [questionNumber]);
 
   if (loading) return <p>Loading question...</p>;
   if (!question) return <p>Question not found.</p>;
@@ -74,12 +79,17 @@ const QuestionPage = () => {
         });
           if(!result.ok)
           {
-            const error = await result.json();
-            console.error("Failed to give points: ",error);
+            let errorText;
+            try {
+              errorText = await result.json();
+            } catch {
+              errorText = { error: "Non-JSON response or empty body" };
+            }
+            console.error("Failed to give points:", errorText);
           }
           else
           {
-            console.log("Points given at the end of the lesson");
+            console.log("Points given on correct answer");
             setPointsAwarded(true);
           }
         }
@@ -90,6 +100,24 @@ const QuestionPage = () => {
         }
         
           }
+        try {
+          const result = await fetch("/api/progress", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              sectionId: Number(params.sectionId),
+              progress_pct: 1,// the progress being added to the lesson progress when the user gets a question right
+            }),
+          });
+          
+    
+          if (!result.ok) {
+            const error = await result.json();
+            console.error("Failed to update progress:", error);
+          }
+        } catch (error) {
+          console.error("Error updating progress:", error);
+        }
         }
       else
       {

@@ -1,5 +1,4 @@
 import { createClient } from '@/utils/supabase/server';
-
 let supabase: Awaited<ReturnType<typeof createClient>> | null = null; // Makes client a global var to be used by queries 
 
 async function initializeSupabase() {
@@ -238,7 +237,7 @@ export async function updateUserScore(userId: number, amount: number) {
     const { data, error: fetchError } = await supabase
         .from("User_Progress_Table")
         .select("score")
-        .eq("id", userId)
+        .eq("user_id", userId)
         .single();
 
     if (fetchError) {
@@ -246,18 +245,24 @@ export async function updateUserScore(userId: number, amount: number) {
         throw new Error("Failed to fetch user score.");
     }
     const newScore = data.score + amount;
+    if (amount <= 0) {
+        console.log("Ignoring update: score amount not positive.");
+        return { success: false, message: "Score update must be positive." };
+    }
+    
 
     // updating the score in the database
-    // this might break if the permissions do the same thing as the email - Hector
+    // this might break if the permissions do the same thing as the email 
     const { error } = await supabase
         .from("User_Progress_Table")
         .update({ score: newScore })
-        .eq("id", userId);
+        .eq("user_id", userId);
 
     if (error) {
         console.error("Error updating score: ", error);
         throw new Error("Failed to update user score.");
     }
+    return { success: true, newScore };
 }
 
 // get url of video lessons
@@ -276,4 +281,18 @@ export const getSignedVideoUrl = async (sectionId: number, questionNum: number) 
     }
 
   return data.signedUrl;
+}
+export async function updateUserProgress(userId: number, sectionId: number, progress_pct: number) {
+    const supabase = await initializeSupabase();
+    // updating the progress in the database it should be both over all and per lesson
+    // this might break if the permissions do the same thing as the email     
+    const { error } = await supabase
+      .from("User_Progress_Table")
+      .update({ progress_pct })
+      .match({ user_id: userId, section_id: sectionId });
+  
+    if (error) {
+      throw new Error(`Error updating progress: ${error.message}`);
+    }
+    return { success: true };
 };

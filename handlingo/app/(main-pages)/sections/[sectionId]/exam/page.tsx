@@ -84,7 +84,24 @@ const QuestionPage = () => {
         {
           console.error("Error updating points/score")
         }
-        
+        try {
+          const result = await fetch("/api/progress", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              sectionId: Number(params.sectionId),
+              amount: 16.67,// the progress being added to the lesson progress when the user gets a question right
+            }),
+          });
+    
+          if (!result.ok) {
+            const error = await result.json();
+            console.error("Failed to update progress:", error);
+          }
+        } catch (error) {
+          console.error("Error updating progress:", error);
+        }
+    
       }
       else
       {
