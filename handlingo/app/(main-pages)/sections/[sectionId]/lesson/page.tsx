@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useParams, useRouter } from "next/navigation";
 import CameraFeed from "@/components/client/CameraFeed";
 import VideoPlayer from "@/components/ui/lessonVid";
+import TrafficLight from "@/components/ui/trafficLight";
 // make a list that counts through the questions once we've hit the last one 
 // display "congrats you finished the lesson" and give points
 
@@ -27,6 +28,7 @@ const QuestionPage = () => {
   const [feedback, setFeedback] = useState("");
   const [pointsAwarded, setPointsAwarded]= useState(false);
   const [videoUrl, setVideoUrl] = useState("")
+  const [status, setStatus] = useState<"red" | "yellow" | "green">("red");
   // keeps track of what question the user is on by parsing the url
   const questionNumber = parseInt(searchParams.get("q") || "1", 10);
   //to track if user has gotten answer correct at some point
@@ -59,6 +61,7 @@ const QuestionPage = () => {
         setSelectedAnswer(null);
         setFeedback("");
         setPointsAwarded(false);
+        setStatus("red")
 
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -84,9 +87,7 @@ const QuestionPage = () => {
     let newPhase = "lesson";
     if (nextQuestionNumber >= 6 && nextQuestionNumber <= 10) {
       newPhase = "quiz"; // go from lesson to quiz
-    } else if (nextQuestionNumber >= 11) {
-      newPhase = "exam";
-    }
+    } 
 
     // next question
     router.push(`/sections/${params.sectionId}/${newPhase}?q=${nextQuestionNumber}`);
@@ -203,14 +204,19 @@ const QuestionPage = () => {
                 setPointsAwarded(false);
                 setSelectedAnswer(null);
                 setFeedback("");
+                setStatus("red");
               }}
               onPrediction={handlePrediction}
+              status = {status}
+              setStatus={setStatus}
               />
             </div>
 
             {/* Traffic Light Feedback */}
-            <p className="pt-5">Correct Answer: {question.correct_answer}</p>
-            <p>FeedBack: {feedback}</p>
+            <div className="pt-7">
+              <TrafficLight status={status} />
+            </div>
+  
           </div>
 
         </div>
@@ -218,7 +224,7 @@ const QuestionPage = () => {
         {/* Next Button */}
         <button 
           disabled={!isCorrect}
-          className="absolute bottom-[5%] right-[5%] text-xl font-bold justify-end font-fira text-black px-6 py-2 rounded-xl bg-darkBlue"//onClick={handlePrediction}>
+          className="absolute bottom-[5%] right-[5%] text-xl font-bold justify-end font-fira text-black px-6 py-2 rounded-xl bg-darkBlue"
           onClick={handleNextQuestion}>
           NEXT
         </button>

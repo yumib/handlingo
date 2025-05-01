@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useParams, useRouter } from "next/navigation";
 // this should let us use the camera component to predict what letter was signed and give points if it was right 
 import CameraFeed from "@/components/client/CameraFeed";
+import TrafficLight from "@/components/ui/trafficLight";
 
 
 
@@ -25,6 +26,7 @@ const QuestionPage = () => {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
   const [pointsAwarded, setPointsAwarded]= useState(false);
+  const [status, setStatus] = useState<"red" | "yellow" | "green">("red");
   // keeps track of what question the user is on by parsing the url
   const questionNumber = parseInt(searchParams.get("q") || "1", 10);
   //to track if user has gotten answer correct at some point
@@ -48,6 +50,7 @@ const QuestionPage = () => {
         setSelectedAnswer(null);
         setFeedback("");
         setPointsAwarded(false);
+        setStatus("red")
 
       } catch (error) {
         console.error("Error fetching question:", error);
@@ -167,20 +170,25 @@ const QuestionPage = () => {
                 setPointsAwarded(false);
                 setSelectedAnswer(null);
                 setFeedback("");
+                setStatus("red");
               }}
               onPrediction={handlePrediction}
+              status = {status}
+              setStatus={setStatus}
               />
             </div>
             
-            <div className="flex pt-5"> </div>
-            <p>Correct Answer: {question.correct_answer}</p>
-            <p>FeedBack:{feedback}</p>
+            {/* Traffic Light */}
+            <div className="pt-7">
+              <TrafficLight status={status} />
+            </div>
+
           </div>
 
           {/* NEXT button */}
           <button 
           disabled={!isCorrect}
-          className="absolute bottom-[5%] right-[5%] text-xl font-bold justify-end font-fira text-black px-6 py-2 rounded-xl bg-darkBlue"//onClick={handlePrediction}>
+          className="absolute bottom-[5%] right-[5%] text-xl font-bold justify-end font-fira text-black px-6 py-2 rounded-xl bg-darkBlue"
           onClick={handleNextQuestion}>
           NEXT
           </button>

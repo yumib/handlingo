@@ -193,7 +193,7 @@ const QuestionPage = () => {
           {/* NEXT button */}
           <button 
           disabled={!isCorrect}
-          className="absolute bottom-[5%] right-[5%] text-xl font-bold justify-end font-fira text-black px-6 py-2 rounded-xl bg-darkBlue"//onClick={handlePrediction}>
+          className="absolute bottom-[5%] right-[5%] text-xl font-bold justify-end font-fira text-black px-6 py-2 rounded-xl bg-darkBlue"
           onClick={handleNextQuestion}>
           NEXT
           </button>
