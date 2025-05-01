@@ -20,9 +20,9 @@ export async function GET(request: Request, context: { params: { sectionId?: str
 
     try {
 
-        const lessonVid = await getSignedAssetUrl(sectionId, questionNumber, 'lesson-vids');
+        const quizPic = await getSignedAssetUrl(sectionId, questionNumber, 'quiz-pics');
 
-        return NextResponse.json({ lessonVid });
+        return NextResponse.json({ quizPic });
     } catch (error) {
         return NextResponse.json({ error: "Error fetching question data" }, { status: 500 });
     }

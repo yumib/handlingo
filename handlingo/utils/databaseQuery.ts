@@ -293,18 +293,25 @@ export async function updateUserScore(userId: number, amount: number) {
 }
 
 // get url of video lessons
-export const getSignedVideoUrl = async (sectionId: number, questionNum: number) => {
+export const getSignedAssetUrl = async (sectionId: number, questionNum: number, folder: string) => {
   const supabase = await initializeSupabase();
-  const path = `section_${sectionId}/question_${questionNum}.mp4`;
+  let extension = "";
+  if (folder === 'lesson-vids') {
+    extension = 'mp4';
+  } else{
+    extension = 'png'
+  }
+  const path = `section_${sectionId}/question_${questionNum}.${extension}`;
+  console.log(path);
 
   const { data, error } = await supabase
     .storage
-    .from('lesson-vids')
+    .from(folder)
     .createSignedUrl(path, 60)
 
     if (error) {
-        console.error("Error getting lesson vid url: ", error);
-        throw new Error("Failed to get URL to lesson video.");
+        console.error(`Error getting asset url in folder ${folder}: `, error);
+        throw new Error("Failed to get URL to asset in folder: " + folder);
     }
 
   return data.signedUrl;
