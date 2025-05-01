@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams, useParams, useRouter } from "next/navigation";
-import Layout from '@/components/ui/layout'; 
-// import MultipleChoice from "@/components/client/multipleChoice";
-
+import VideoPlayer from "@/components/ui/lessonVid";
+import MultipleChoice from "@/components/client/multipleChoice";
 
 const QuestionPage = () => {
 
@@ -26,21 +25,42 @@ const QuestionPage = () => {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
   const [pointsAwarded, setPointsAwarded]= useState(false);
+  const [videoUrl, setVideoUrl] = useState("")
   // keeps track of what question the user is on by parsing the url
   const questionNumber = parseInt(searchParams.get("q") || "1", 10);
+  //to track if user has gotten answer correct at some point
+  const [isCorrect, setIsCorrect] = useState(true); // default = true for now. change later
 
   useEffect(() => {
-    if (!params.sectionId) return;
+    if (!params.sectionId || isNaN(questionNumber)) return;
+
+    console.log("sectionId:", params.sectionId);
+    console.log("questionNumber from URL:", questionNumber);
 
     // fetch the question data from API
     const fetchQuestion = async () => {
       try {
-        const res = await fetch(`/api/section/${params.sectionId}/${questionNumber}`);
-        const data = await res.json();
-        console.log(data)
-        if (!res.ok) throw new Error(data.error);
+        // fetch question and video in parallel
+        const [questionRes, videoRes] = await Promise.all([
+          fetch(`/api/section/${params.sectionId}/${questionNumber}`),
+          fetch(`/api/lessonVids/${params.sectionId}/${questionNumber - 5}`) //since video is 1-5
+        ]);
 
-        setQuestion(data.question); // assuming the API returns { question: { ... } }
+        const questionData = await questionRes.json();
+        const videoData = await videoRes.json();
+        
+        if (!questionRes.ok) throw new Error(questionData.error);
+        if (!videoRes.ok) throw new Error(videoData.error);
+
+        setQuestion(questionData.question); // set question data
+        setVideoUrl(videoData.lessonVid); // set video URL
+
+        // Reset UI state for new question
+        setIsCorrect(false); 
+        setSelectedAnswer(null);
+        setFeedback("");
+        setPointsAwarded(false);
+
       } catch (error) {
         console.error("Error fetching question:", error);
       } finally {
@@ -49,11 +69,27 @@ const QuestionPage = () => {
     };
 
     fetchQuestion();
-  }, [params.sectionId, searchParams]);
+  }, [params.sectionId, questionNumber]);
 
   if (loading) return <p>Loading question...</p>;
   if (!question) return <p>Question not found.</p>;
 
+  // NEXT QUESTION (button)
+  const handleNextQuestion = () => {
+    const nextQuestionNumber = questionNumber + 1;
+
+    // later should use 'total_question' field / 3 to calculate when to switch
+    // for now its fine. 6 is start of quiz. 11 is start of exam. 15 is end of section
+    let newPhase = "quiz";
+    if (nextQuestionNumber >= 11 && nextQuestionNumber <= 15) {
+      newPhase = "exam"; // go from quiz to exam
+    } 
+
+    // next question
+    router.push(`/sections/${params.sectionId}/${newPhase}?q=${nextQuestionNumber}`);
+  };
+
+  // MC response
   const handleAnswer= async (answer: string) =>{
     if(!question || pointsAwarded)
       {
@@ -63,8 +99,9 @@ const QuestionPage = () => {
   
     if(answer === question.correct_answer)
       {
-        setFeedback("Thats Correct!");
-          if(questionNumber===5 && !pointsAwarded){
+        setFeedback("Good job! Thats correct!");
+        setIsCorrect(true) //user got answer correct
+        if(questionNumber===5 && !pointsAwarded){
         try{
           const result = await fetch("/api/points",{
             method: "POST",
@@ -93,25 +130,77 @@ const QuestionPage = () => {
         }
       else
       {
-        setFeedback("Thats wrong. Try again.")
+        setIsCorrect(true) // REMOVE LATER. For now, acting as only allow next after user answers question
+        setFeedback(`That is incorrect. The correct answer was ${question.correct_answer}`);
       }
   };
 
   return (
-    // display data
-    <Layout>
-    <div>
-      <h1>{question.title}</h1>
-      <p>{question.header}</p>
-      {/* <MultipleChoice
-          choices={question.options}
-          selectedAnswer={selectedAnswer}
-          onAnswer={handleAnswer}
-        /> */}
-      <p>FeedBack:{feedback}</p>
-      <p>Correct Answer: {question.correct_answer}</p>
+    //Page Container
+    <div className="flex justify-center items-center h-[calc(100vh-5rem)]">
+      {/* Box to hold everything */}
+      <div className= "flex flex-col h-[90vh] min-w-48 w-[175vh] border-2 border-black"> 
+      
+        {/* title + progress bar */}
+        <div className= "flex w-full h-[10vh] py-5 justify-between"> 
+          {/* title */}
+          <div className="text-3xl font-bold pl-7 font-fira text-black">
+            {question.title}
+          </div>
+          
+          {/* lesson progress bar -- PENDING -- THIS IS USING FAKE NUMBER RN */}
+          <div className="flex pt-2 gap-1.5 w-6/12 pr-9">
+              <span className="text-sm text-gray-600 font-nunito">
+                {Math.round(10)}%
+              </span>
+              <div className="w-full h-4 border border-black bg-white rounded-full">
+                <div
+                  className="h-full bg-lightBlue rounded-full"
+                  style={{ width: `${10}%` }}
+                />
+              </div> 
+          </div>
+        </div>
+
+
+        {/* Lesson Content */}
+        <div className="flex flex-col w-full h-full px-5">
+          
+          {/* Top Instructions */}
+          <p className="text-xl font-medium font-fira text-black my-[5vh]">
+            {question.header}
+          </p>
+
+          {/* Content Container */}
+          <div className="flex flex-col items-center w-full h-full">
+            {/* Video */}
+            <div className="w-[530px] pb-5"> 
+              <VideoPlayer videoUrl={videoUrl} />
+            </div>
+
+            {/* Multiple Choice */}
+            <div className="flex">
+              <MultipleChoice
+              choices={question.options}
+              selectedAnswer={selectedAnswer}
+              correctAnswer={question.correct_answer}
+              onAnswer={handleAnswer}/> 
+            </div>
+
+            <p>{feedback}</p>
+          </div>
+
+          {/* NEXT button */}
+          <button 
+          disabled={!isCorrect}
+          className="absolute bottom-[5%] right-[5%] text-xl font-bold justify-end font-fira text-black px-6 py-2 rounded-xl bg-darkBlue"
+          onClick={handleNextQuestion}>
+          NEXT
+          </button>
+
+        </div>
     </div>
-    </Layout>
+  </div>
   );
 };
 
