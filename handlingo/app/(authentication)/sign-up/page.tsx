@@ -1,3 +1,4 @@
+import { PopUp } from "@/components/ui/errorHandling";
 import { signUpAction } from "@/app/actions";
 import { FormMessage, Message } from "@/components/form-message";
 import { SubmitButton } from "@/components/submit-button";
@@ -7,17 +8,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { SmtpMessage } from "./smtp-message";
 
-export default async function Signup(props: { searchParams: Promise<Message>; }) {
-  
-  // not sure what this does, maybe for sign up user errors
-  const searchParams = await props.searchParams;
-
-  if ("message" in searchParams) {
-    return (
-      <div className="w-full flex-1 flex items-center h-screen sm:max-w-md justify-center gap-2 p-4">
-        <FormMessage message={searchParams} />
-      </div>
-    );
+export default async function Signup(props: { searchParams: Promise<Message> }) {
+  let searchParams: Message = { message: "" };
+  try {
+    searchParams = await props.searchParams;
+  } catch (e) {
+    console.error("Failed to resolve searchParams", e);
   }
 
   return (
@@ -65,14 +61,16 @@ export default async function Signup(props: { searchParams: Promise<Message>; })
             required
           />
         </div>
-          
+
+          {/* Error  */}
+        <PopUp message={searchParams} />
+
         {/* Submit Button */}
         {/* goes to file ./app/actions.ts to handle creating new user, function signUpAction */}
         <SubmitButton className="w-[calc(95%-20px)] h-10" pendingText="Signing up..." formAction={signUpAction}>
           Sign up
         </SubmitButton>
 
-        <FormMessage message={searchParams} />
         {/* <SmtpMessage /> */}
       </div> {/* end blue box container */}
       </form>

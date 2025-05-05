@@ -41,7 +41,7 @@ const UserInputField = (props: UserInputFieldType) => {
             style = {{color: "#626367"}}
             className="mb-0 border border-transparent font-nunito font-light"
             ref={inputRef}
-            id="password"
+            // id="password"
             type={props.isPasswordField ? "password" : "text"}
             value={props.userDataValue}
             onChange={handleValueChange}

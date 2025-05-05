@@ -25,13 +25,13 @@ const geistSans = Geist({
 const firaSans = Fira_Sans({
   subsets: ["latin"],
   variable: "--font-fira",
-  weight: ["400", "700"], // I probably should modify this
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
 
 const nunito = Nunito({
   subsets: ["latin"],
   variable: "--font-nunito",
-  weight: ["400", "700"], // I probably should modify this
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
 
 export default function RootLayout({

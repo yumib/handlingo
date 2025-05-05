@@ -1,11 +1,19 @@
 import { NextResponse } from 'next/server';
-import { updateUserProfile, updateUserAuthPassword } from '@/utils/databaseQuery'; 
+import { updateUserProfile, updateUserAuthPassword, isUsernameUnique } from '@/utils/databaseQuery'; 
 
 export async function POST(request: Request) {
   try {
     
     // getting needed information from request
-    const { email, password, updatedFields } = await request.json();
+    const { email, password, updatedFields, access_token } = await request.json();
+
+    // If username is being updated, check uniqueness first
+    if (updatedFields.username) {
+      const unique = await isUsernameUnique(updatedFields.username);
+      if (!unique) {
+        return NextResponse.json({ message: "Username is already taken. Please choose another one." }, { status: 400 });
+      }
+    }
 
     // compare password in db to changed password
     const passwordChanged = updatedFields.password && updatedFields.password !== password;
@@ -14,7 +22,7 @@ export async function POST(request: Request) {
     if (passwordChanged) {
       try {
         // db query to update password in auth table
-        await updateUserAuthPassword(updatedFields.password);
+        await updateUserAuthPassword(updatedFields.password, access_token);
       } catch (e) {
         console.error('Error updating password in auth table:', e);
         return NextResponse.json({ message: 'Error updating password in auth table' }, { status: 500 });

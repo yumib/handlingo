@@ -4,18 +4,26 @@ import { FormMessage, Message } from "@/components/form-message";
 import { SubmitButton } from "@/components/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PopUp } from "@/components/ui/errorHandling";
 import Link from "next/link";
 import Image from "next/image";
 
 
 
-export default async function SignIn(props: { searchParams: Promise<Message> }) {
+export default async function SignIn(props: { searchParams: Promise<Record<string, string>> }) {
+  let searchParams: { [key: string]: string | string[] | undefined } = {};
 
-  // not sure what this does tbh
-  const searchParams = await props.searchParams;
-
+  try {
+    const rawParams = await props.searchParams;
+    if (typeof rawParams?.message === "string") {
+      searchParams = JSON.parse(decodeURIComponent(rawParams.message));
+    } else {
+      searchParams = rawParams;
+    }
+  } catch (e) {
+    console.error("Failed to parse searchParams", e);
+  }
   return (
-      
       <form className="relative flex-1 flex flex-col min-w-48 max-w-96 w-3/12 z-10">
       {/* Log In Box */}
       <div className="flex flex-col items-center space-y-4 p-6 bg-lightBlue rounded-lg">
@@ -50,6 +58,10 @@ export default async function SignIn(props: { searchParams: Promise<Message> }) 
             required
           /> 
         </div>
+        {/* Error Handling from the sign up page */}
+        {/** Error Handling **/}
+        <PopUp message={searchParams} />
+        {/** -------------- **/}
 
         {/* Submit Button */}
         {/* goes to file ./app/actions.ts to handle signing in user, function signInAction */}
@@ -61,8 +73,7 @@ export default async function SignIn(props: { searchParams: Promise<Message> }) 
         <Link className="text-xs text-foreground underline" href="/forgot-password">
               Forgot your password?
         </Link>
-
-      <FormMessage message={searchParams} />
+      
       </div> {/* end blue box container */}
     </form> 
   );
