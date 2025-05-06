@@ -6,7 +6,7 @@ import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { getUserByUsername, createNewUser } from "@/utils/databaseQuery";
+import { getUserByUsername, createNewUser, getUserByEmailOrUsername } from "@/utils/databaseQuery";
 
 export const signUpAction = async (formData: FormData) => {
 
@@ -21,11 +21,31 @@ export const signUpAction = async (formData: FormData) => {
 
   console.log(fname, lname, email, username, password);
 
+  const nameRegex = /^[A-Za-z]+$/;
+
   if (!fname || !lname || !email || !username || !password) {
     return encodedRedirect(
       "error",
       "/sign-up",
-      "Email and password are required",
+      "All fields are required",
+    );
+  }
+
+  if (!nameRegex.test(fname) || !nameRegex.test(lname)) {
+    return encodedRedirect(
+      "error",
+      "/sign-up",
+      "First and last name must contain only letters",
+    );
+  }
+
+  // Check if email or username is already taken
+  const existingUser = await getUserByEmailOrUsername(email, username);
+  if (existingUser) {
+    return encodedRedirect(
+      "error",
+      "/sign-up",
+      "Username or email is already registered"
     );
   }
 

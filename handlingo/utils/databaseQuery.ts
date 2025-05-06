@@ -56,6 +56,22 @@ export async function createNewUser(fname: string, lname: string, email: string,
     return { success: true, data };
 }
 
+export async function getUserByEmailOrUsername(email: string, username: string) {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("User_Table")
+      .select("*")
+      .or(`email.eq.${email},username.eq.${username}`)
+      .maybeSingle();
+  
+    if (error) {
+      console.error("DB query failed: ", error);
+      return null;
+    }
+  
+    return data;
+  }  
+
 // DASHBOARD QUERIES:
 export async function getUserLessonAttempts(userId: number) {
     const supabase = await initializeSupabase();
