@@ -5,6 +5,8 @@ import { useSearchParams, useParams, useRouter } from "next/navigation";
 import Layout from '@/components/ui/layout'; 
 import MultipleChoice from "@/components/client/multipleChoice";
 import VideoPlayer from "@/components/ui/lessonVid";
+import LoadingImage from "@/components/ui/loading";
+
 
 
 const QuestionPage = () => {
@@ -81,30 +83,11 @@ const QuestionPage = () => {
   }, [questionNumber]);
 
 
-  if (loading) return <p>Loading question...</p>;
+  if (loading) return <LoadingImage />;
   if (!question) return <p>Question not found.</p>;
 
   // NEXT QUESTION (button)
-  const handleNextQuestion = async() => {
-    if(totalQuestions)
-    try {
-      const result = await fetch("/api/progress", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sectionId: Number(params.sectionId),
-          progress_pct: (questionNumber / totalQuestions) * 100,// the progress being added to the lesson progress when the user gets a question right
-        }),
-      });
-      
-
-      if (!result.ok) {
-        const error = await result.json();
-        console.error("Failed to update progress:", error);
-      }
-    } catch (error) {
-      console.error("Error updating progress:", error);
-    }
+  const handleNextQuestion = () => {
     const nextQuestionNumber = questionNumber + 1;
 
     // later should use 'total_question' field / 3 to calculate when to switch
@@ -125,7 +108,28 @@ const QuestionPage = () => {
         return;
       }
       setSelectedAnswer(answer);
+      //progress section
   
+    if(totalQuestions)
+      try {
+        const result = await fetch("/api/progress", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sectionId: Number(params.sectionId),
+            progress_pct: (questionNumber / totalQuestions) * 100,// the progress being added to the lesson progress when the user gets a question right
+          }),
+        });
+        
+  
+        if (!result.ok) {
+          const error = await result.json();
+          console.error("Failed to update progress:", error);
+        }
+      } catch (error) {
+        console.error("Error updating progress:", error);
+      }
+      // points section
     if(answer === question.correct_answer)
       {
         setFeedback("Good job! Thats correct!");

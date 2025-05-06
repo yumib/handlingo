@@ -86,27 +86,7 @@ const QuestionPage = () => {
 
 
   // NEXT QUESTION (linked to button)
-  const handleNextQuestion = async () => {
-    if(totalQuestions)
-    {
-    try {
-      const result = await fetch("/api/progress", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sectionId: Number(params.sectionId),
-          progress_pct: (questionNumber / totalQuestions) * 100,// the progress being added to the lesson progress when the user gets a question right
-        }),
-      });
-      
-      if (!result.ok) {
-        const error = await result.json();
-        console.error("Failed to update progress:", error);
-      }
-    } catch (error) {
-      console.error("Error updating progress:", error);
-    }
-  }
+  const handleNextQuestion = () => {
     const nextQuestionNumber = questionNumber + 1;
     // later should use 'total_question' field / 3 to calculate when to switch
     // for now its fine. 6 is start of quiz. 11 is start of exam. 15 is end of section
@@ -127,7 +107,29 @@ const QuestionPage = () => {
       return;
     }
     setSelectedAnswer(predictedLetter);
+    // progress section
+    if(totalQuestions)
+      {
+      try {
+        const result = await fetch("/api/progress", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sectionId: Number(params.sectionId),
+            progress_pct: (questionNumber / totalQuestions) * 100,// the progress being added to the lesson progress when the user gets a question right
+          }),
+        });
+        
+        if (!result.ok) {
+          const error = await result.json();
+          console.error("Failed to update progress:", error);
+        }
+      } catch (error) {
+        console.error("Error updating progress:", error);
+      }
+    }
 
+    //points section
     if(predictedLetter === question.correct_answer)
       {
         setIsCorrect(true); //update flag

@@ -229,7 +229,6 @@ export async function getQuestionByNum(questionNum: number, sectionId: number) {
         .single();
 
     if (error) throw new Error("Error fetching question");
-    console.log(data)
     return data;
 }
 
@@ -262,11 +261,10 @@ export async function updateUserScore(userId: number, amount: number) {
 
     // selecting the score from the user progress table 
     const { data, error: fetchError } = await supabase
-        .from("User_Progress_Table")
+        .from("User_Table")
         .select("score")
-        .eq("user_id", userId)
+        .eq("id", userId)
         .single();
-
     if (fetchError) {
         console.error("Error fetching score: ", fetchError);
         throw new Error("Failed to fetch user score.");
@@ -276,14 +274,13 @@ export async function updateUserScore(userId: number, amount: number) {
         console.log("Ignoring update: score amount not positive.");
         return { success: false, message: "Score update must be positive." };
     }
-    
 
     // updating the score in the database
     // this might break if the permissions do the same thing as the email 
     const { error } = await supabase
-        .from("User_Progress_Table")
+        .from("User_Table")
         .update({ score: newScore })
-        .eq("user_id", userId);
+        .eq("id", userId);
 
     if (error) {
         console.error("Error updating score: ", error);

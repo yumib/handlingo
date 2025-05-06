@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams, useParams, useRouter } from "next/navigation";
+import LoadingImage from "@/components/ui/loading";
 // this should let us use the camera component to predict what letter was signed and give points if it was right 
 import CameraFeed from "@/components/client/CameraFeed";
 import TrafficLight from "@/components/ui/trafficLight";
@@ -63,31 +64,11 @@ const QuestionPage = () => {
     fetchQuestion();
   }, [params.sectionId, searchParams]);
 
-  if (loading) return <p>Loading question...</p>;
+  if (loading) return <LoadingImage />;
   if (!question) return <p>Question not found.</p>;
 
   // NEXT QUESTION (button)
-  const handleNextQuestion = async() => {
-    if(totalQuestions)
-      {
-      try {
-        const result = await fetch("/api/progress", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sectionId: Number(params.sectionId),
-            progress_pct: (questionNumber / totalQuestions) * 100,// the progress being added to the lesson progress when the user gets a question right
-          }),
-        });
-        
-        if (!result.ok) {
-          const error = await result.json();
-          console.error("Failed to update progress:", error);
-        }
-      } catch (error) {
-        console.error("Error updating progress:", error);
-      }
-    }
+  const handleNextQuestion = () => {
     const nextQuestionNumber = questionNumber + 1;
 
     // later should use 'total_question' field / 3 to calculate when to switch
@@ -110,6 +91,29 @@ const QuestionPage = () => {
     }
     setSelectedAnswer(predictedLetter);
 
+    //progress section
+    if(totalQuestions)
+      {
+      try {
+        const result = await fetch("/api/progress", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sectionId: Number(params.sectionId),
+            progress_pct: (questionNumber / totalQuestions) * 100,// the progress being added to the lesson progress when the user gets a question right
+          }),
+        });
+        
+        if (!result.ok) {
+          const error = await result.json();
+          console.error("Failed to update progress:", error);
+        }
+      } catch (error) {
+        console.error("Error updating progress:", error);
+      }
+    }
+
+    //points section
     if(predictedLetter === question.correct_answer)
       {
         setFeedback("Thats correct!");
