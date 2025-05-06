@@ -31,6 +31,7 @@ const QuestionPage = () => {
   const questionNumber = parseInt(searchParams.get("q") || "1", 10);
   //to track if user has gotten answer correct at some point
   const [isCorrect, setIsCorrect] = useState(true); // default = true for now. change later
+  const [totalQuestions, setTotalQuestions] = useState<number | null>(null);
 
   useEffect(() => {
     if (!params.sectionId) return;
@@ -43,6 +44,7 @@ const QuestionPage = () => {
         if (!res.ok) throw new Error(data.error);
 
         setQuestion(data.question); // Assuming the API returns { question: { ... } }
+        setTotalQuestions(data.total_questions);//sets the total amount of questions in the section
 
         // Reset UI state for new question
         setIsCorrect(false); 
@@ -65,7 +67,27 @@ const QuestionPage = () => {
   if (!question) return <p>Question not found.</p>;
 
   // NEXT QUESTION (button)
-  const handleNextQuestion = () => {
+  const handleNextQuestion = async() => {
+    if(totalQuestions)
+      {
+      try {
+        const result = await fetch("/api/progress", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sectionId: Number(params.sectionId),
+            progress_pct: (questionNumber / totalQuestions) * 100,// the progress being added to the lesson progress when the user gets a question right
+          }),
+        });
+        
+        if (!result.ok) {
+          const error = await result.json();
+          console.error("Failed to update progress:", error);
+        }
+      } catch (error) {
+        console.error("Error updating progress:", error);
+      }
+    }
     const nextQuestionNumber = questionNumber + 1;
 
     // later should use 'total_question' field / 3 to calculate when to switch
@@ -113,24 +135,6 @@ const QuestionPage = () => {
         {
           console.error("Error updating points/score")
         }
-        try {
-          const result = await fetch("/api/progress", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              sectionId: Number(params.sectionId),
-              amount: 16.67,// the progress being added to the lesson progress when the user gets a question right
-            }),
-          });
-    
-          if (!result.ok) {
-            const error = await result.json();
-            console.error("Failed to update progress:", error);
-          }
-        } catch (error) {
-          console.error("Error updating progress:", error);
-        }
-    
       }
       else
       {
@@ -155,15 +159,19 @@ const QuestionPage = () => {
           
           {/* lesson progress bar -- PENDING -- THIS IS USING FAKE NUMBER RN */}
           <div className="flex pt-2 gap-1.5 w-6/12 pr-9">
+          {totalQuestions && (
+            <>
               <span className="text-sm text-gray-600 font-nunito">
-                {Math.round(10)}%
+                {Math.round((questionNumber / totalQuestions) * 100)}%
               </span>
               <div className="w-full h-4 border border-black bg-white rounded-full">
                 <div
                   className="h-full bg-lightBlue rounded-full"
-                  style={{ width: `${10}%` }}
+                  style={{ width: `${(questionNumber / totalQuestions) * 100}%` }}
                 />
-              </div> 
+              </div>
+            </>
+          )}
           </div>
         </div>
 
