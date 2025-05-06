@@ -8,7 +8,6 @@ import VideoPlayer from "@/components/ui/lessonVid";
 import LoadingImage from "@/components/ui/loading";
 
 
-
 const QuestionPage = () => {
 
   //not sure what this does
@@ -29,7 +28,7 @@ const QuestionPage = () => {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
   const [pointsAwarded, setPointsAwarded]= useState(false);
-  const [videoUrl, setVideoUrl] = useState("");
+  const [picUrl, setPicUrl] = useState("")
   // keeps track of what question the user is on by parsing the url
   const questionNumber = parseInt(searchParams.get("q") || "1", 10);
   //to track if user has gotten answer correct at some point
@@ -45,20 +44,21 @@ const QuestionPage = () => {
     const fetchQuestion = async () => {
       try {
         // fetch question and video in parallel
-        const [questionRes, videoRes] = await Promise.all([
+        const [questionRes, picRes] = await Promise.all([
           fetch(`/api/section/${params.sectionId}/${questionNumber}`),
-          fetch(`/api/lessonVids/${params.sectionId}/${questionNumber - 5}`) //since video is 1-5
+          fetch(`/api/quizPics/${params.sectionId}/${questionNumber - 5}`) //since video is 1-5
         ]);
 
         const questionData = await questionRes.json();
-        const videoData = await videoRes.json();
+        const picData = await picRes.json();
         
         if (!questionRes.ok) throw new Error(questionData.error);
-        if (!videoRes.ok) throw new Error(videoData.error);
+        if (!picRes.ok) throw new Error(picData.error);
 
         setQuestion(questionData.question); // set question data
-        setVideoUrl(videoData.lessonVid); // set video URL
         setTotalQuestions(questionData.total_questions);//sets the total amount of questions in the section
+        setPicUrl(picData.quizPic); // set video URL
+
 
         // Reset UI state for new question
         setIsCorrect(false); 
@@ -241,7 +241,8 @@ const QuestionPage = () => {
           <div className="flex flex-col items-center w-full h-full">
             {/* Video */}
             <div className="w-[530px] pb-5"> 
-              <VideoPlayer videoUrl={videoUrl} />
+              {/* <VideoPlayer videoUrl={videoUrl} /> */}
+              {picUrl}
             </div>
 
             {/* Multiple Choice */}
