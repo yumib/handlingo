@@ -1,6 +1,6 @@
 // Example route to fetch question using `q`
 import { NextResponse } from "next/server";
-import { getQuestionByNum } from "@/utils/databaseQuery";
+import { getQuestionByNum, getQuestionsForSection } from "@/utils/databaseQuery";
 
 export async function GET(request: Request, context: { params: { sectionId?: string; questionNum?: string } }) {
     // get parameters from url
@@ -27,7 +27,10 @@ export async function GET(request: Request, context: { params: { sectionId?: str
             return NextResponse.json({ error: "Question not found" }, { status: 404 });
         }
 
-        return NextResponse.json({ question });
+        const allQuestions = await getQuestionsForSection(sectionId);
+        const totalQuestions = allQuestions.length;
+    
+        return NextResponse.json({ question, total_questions: totalQuestions });
     } catch (error) {
         return NextResponse.json({ error: "Error fetching question data" }, { status: 500 });
     }

@@ -33,7 +33,7 @@ const QuestionPage = () => {
   const questionNumber = parseInt(searchParams.get("q") || "1", 10);
   //to track if user has gotten answer correct at some point
   const [isCorrect, setIsCorrect] = useState(true); // default = true for now. change later
-
+  const [totalQuestions, setTotalQuestions] = useState<number | null>(null);
 
   // grab question content
   useEffect(() => {
@@ -55,6 +55,8 @@ const QuestionPage = () => {
   
         setQuestion(questionData.question);
         setVideoUrl(videoData.lessonVid);
+        setTotalQuestions(questionData.total_questions);//sets the total amount of questions in the section
+
 
         // reset variables for new question
         setIsCorrect(true); // or false later
@@ -86,7 +88,6 @@ const QuestionPage = () => {
   // NEXT QUESTION (linked to button)
   const handleNextQuestion = () => {
     const nextQuestionNumber = questionNumber + 1;
-
     // later should use 'total_question' field / 3 to calculate when to switch
     // for now its fine. 6 is start of quiz. 11 is start of exam. 15 is end of section
     let newPhase = "lesson";
@@ -106,28 +107,33 @@ const QuestionPage = () => {
       return;
     }
     setSelectedAnswer(predictedLetter);
+    // progress section
+    if(totalQuestions)
+      {
+      try {
+        const result = await fetch("/api/progress", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sectionId: Number(params.sectionId),
+            progress_pct: (questionNumber / totalQuestions) * 100,// the progress being added to the lesson progress when the user gets a question right
+          }),
+        });
+        
+        if (!result.ok) {
+          const error = await result.json();
+          console.error("Failed to update progress:", error);
+        }
+      } catch (error) {
+        console.error("Error updating progress:", error);
+      }
+    }
 
+    //points section
     if(predictedLetter === question.correct_answer)
       {
         setIsCorrect(true); //update flag
         setFeedback("Thats Correct!");
-        const progressAmount=20;
-        //this is the progress section
-        // we could call this on press for the next button
-        try {
-          await fetch("/api/progress", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              sectionId: Number(params.sectionId),
-              amount: progressAmount,
-            }),
-          });
-          console.log("Progress updated");
-        } catch (error) {
-          console.error("Failed to update progress", error);
-        }
-        //this is the points section
         if(questionNumber===5 && !pointsAwarded){
           try{
             const result = await fetch("/api/points",{
@@ -176,19 +182,24 @@ const QuestionPage = () => {
           {question.title}
         </div>
         
-        {/* lesson progress bar -- PENDING -- THIS IS USING FAKE NUMBER RN */}
-        <div className="flex pt-2 gap-1.5 w-6/12 pr-9">
-            <span className="text-sm text-gray-600 font-nunito">
-              {Math.round(10)}%
-            </span>
-            <div className="w-full h-4 border border-black bg-white rounded-full">
-              <div
-                className="h-full bg-lightBlue rounded-full"
-                style={{ width: `${10}%` }}
-              />
-            </div> 
+          {/* lesson progress bar -- PENDING -- THIS IS USING FAKE NUMBER RN */}
+          <div className="flex pt-2 gap-1.5 w-6/12 pr-9">
+          {totalQuestions && (
+            <>
+              <span className="text-sm text-gray-600 font-nunito">
+                {Math.round((questionNumber / totalQuestions) * 100)}%
+              </span>
+              <div className="w-full h-4 border border-black bg-white rounded-full">
+                <div
+                  className="h-full bg-lightBlue rounded-full"
+                  style={{ width: `${(questionNumber / totalQuestions) * 100}%` }}
+                />
+              </div>
+            </>
+          )}
+          </div>
         </div>
-      </div>
+
 
 
       {/* Lesson Content */}

@@ -3,6 +3,7 @@ import { createClient } from "@/utils/supabase/server";
 import { getInternalUserByEmail, updateUserScore } from "@/utils/databaseQuery";
 
 export async function POST(request: Request) {
+  console.log("Entered POST /api/points");
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -14,8 +15,7 @@ export async function POST(request: Request) {
   if (!internalUser) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
-  // only works for a nonzero or negative amount of points right now so we might need to fix 
-  // this if we want to add those to keep track when someone backtracks
+  // only allows positive numbers to be passed
   const { amount } = await request.json();
   if (typeof amount !== "number" || amount <= 0) {
     return NextResponse.json({ error: "Invalid amount of points" }, { status: 400 });
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     {
       return NextResponse.json({ error: result.message || "Score update failed" }, { status: 500 });
     }
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, newScore: result.newScore });
   } catch (error) {
     console.error("Error updating score:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
