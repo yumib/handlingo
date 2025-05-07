@@ -6,6 +6,9 @@ import LoadingImage from "@/components/ui/loading";
 // this should let us use the camera component to predict what letter was signed and give points if it was right 
 import CameraFeed from "@/components/client/CameraFeed";
 import TrafficLight from "@/components/ui/trafficLight";
+//confetti!
+import Confetti from "react-confetti";
+import { useWindowSize } from "@react-hook/window-size";
 
 
 
@@ -33,6 +36,8 @@ const QuestionPage = () => {
   //to track if user has gotten answer correct at some point
   const [isCorrect, setIsCorrect] = useState(true); // default = true for now. change later
   const [totalQuestions, setTotalQuestions] = useState<number | null>(null);
+  const [showCongrats, setShowCongrats] = useState(false); //end of lesson
+  const [width, height] = useWindowSize();
 
   useEffect(() => {
     if (!params.sectionId) return;
@@ -75,14 +80,36 @@ const QuestionPage = () => {
     // later should use 'total_question' field / 3 to calculate when to switch
     // for now its fine. 6 is start of quiz. 11 is start of exam. 15 is end of section
     let newPhase = "exam";
-    if (nextQuestionNumber >= 15) {
-      // go from quiz to end of section
-      // PENDING - figure out what happens at the end
+
+    // if end of lesson, show congrats!
+    if (nextQuestionNumber >= 16) {
+      setShowCongrats(true);
+      return;
     } 
 
     // next question
     router.push(`/sections/${params.sectionId}/${newPhase}?q=${nextQuestionNumber}`);
   };
+
+  // congrats!
+  if (showCongrats) {
+    return (
+      <div className="flex flex-col justify-center items-center h-screen text-center">
+        {/* Confetti! */}
+        <Confetti width={width} height={height} recycle={false} numberOfPieces={500} />
+
+        {/* Hooray Screen! */}
+        <h1 className="text-4xl font-bold text-green-600 mb-6">🎉 Congratulations! 🎉</h1>
+        <p className="text-xl mb-8">You’ve completed the section {params.sectionId}!</p>
+        <button
+          onClick={() => router.push("/dashboard")}
+          className="px-6 py-3 bg-darkBlue text-white rounded-lg text-lg"
+        >
+          Return to Dashboard
+        </button>
+      </div>
+    );
+  }
 
   // prediction
   const handlePrediction= async (predictedLetter:string) =>{

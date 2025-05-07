@@ -106,7 +106,7 @@ export default function CameraFeed({
       return;
     };
     if (!videoElement || videoElement.videoWidth === 0 || videoElement.videoHeight === 0) {
-      console.error("Invalid video frame: width or height is 0.");
+      console.warn("Video not ready yet.");
       return;
     }
     if (videoElement.readyState < 2) {
