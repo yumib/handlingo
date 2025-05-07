@@ -5,6 +5,7 @@ import { useSearchParams, useParams, useRouter } from "next/navigation";
 // this should let us use the camera component to predict what letter was signed and give points if it was right 
 import CameraFeed from "@/components/client/CameraFeed";
 import TrafficLight from "@/components/ui/trafficLight";
+import LoadingImage from "@/components/ui/loading";
 
 
 
@@ -61,7 +62,7 @@ const QuestionPage = () => {
     fetchQuestion();
   }, [params.sectionId, searchParams]);
 
-  if (loading) return <p>Loading question...</p>;
+  if (loading) return <LoadingImage />;
   if (!question) return <p>Question not found.</p>;
 
   // NEXT QUESTION (button)

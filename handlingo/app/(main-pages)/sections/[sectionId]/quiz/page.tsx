@@ -5,6 +5,7 @@ import { useSearchParams, useParams, useRouter } from "next/navigation";
 import Layout from '@/components/ui/layout'; 
 import MultipleChoice from "@/components/client/multipleChoice";
 import VideoPlayer from "@/components/ui/lessonVid";
+import LoadingImage from "@/components/ui/loading";
 
 
 const QuestionPage = () => {
@@ -79,7 +80,7 @@ const QuestionPage = () => {
   }, [questionNumber]);
 
 
-  if (loading) return <p>Loading question...</p>;
+  if (loading) return <LoadingImage />;
   if (!question) return <p>Question not found.</p>;
 
   // NEXT QUESTION (button)
