@@ -1,13 +1,22 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import { cn } from "@/lib/utils"; 
 
 type TrafficLightProps = {
   status: "red" | "yellow" | "green";
   holdTime?: number; // only needed if you want to show countdown
+  onGreenHoldComplete: () => void;
 };
 
-const TrafficLight: React.FC<TrafficLightProps> = ({ status }) => {
+const TrafficLight: React.FC<TrafficLightProps> = ({ status, onGreenHoldComplete, }) => {
+    // Update onGreenHoldComplete
+    useEffect(() => {
+        if (status === "green") {
+          onGreenHoldComplete(); // Call when status is green
+        }
+      }, [status, onGreenHoldComplete]); // Only triggers when status changes
+    
+    // UI
     return (
         <div className="flex flex-col items-center space-y-2">
             {/* Traffic Lights */}

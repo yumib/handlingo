@@ -59,7 +59,8 @@ const QuestionPage = () => {
 
 
         // reset variables for new question
-        setIsCorrect(true); // or false later
+        setLoading(false);
+        setIsCorrect(false); 
         setSelectedAnswer(null);
         setFeedback("");
         setPointsAwarded(false);
@@ -132,7 +133,6 @@ const QuestionPage = () => {
     //points section
     if(predictedLetter === question.correct_answer)
       {
-        setIsCorrect(true); //update flag
         setFeedback("Thats Correct!");
         if(questionNumber===5 && !pointsAwarded){
           try{
@@ -162,7 +162,6 @@ const QuestionPage = () => {
         }
       else
       {
-        //setIsCorrect(false); //not doing for now. Keeping all true
         setFeedback("Thats wrong. Try again.")
       }
   };
@@ -246,7 +245,15 @@ const QuestionPage = () => {
 
             {/* Traffic Light Feedback */}
             <div className="pt-7">
-              <TrafficLight status={status} />
+              <TrafficLight
+                status={status}
+                onGreenHoldComplete={() => {
+                  // once user holds a correct sign long enough
+                  if (!isCorrect) {
+                    setIsCorrect(true); // enable NEXT button
+                  }
+                }}
+              />
             </div>
   
           </div>
@@ -256,7 +263,7 @@ const QuestionPage = () => {
         {/* Next Button */}
         <button 
           disabled={!isCorrect}
-          className="absolute bottom-[5%] right-[5%] text-xl font-bold justify-end font-fira text-black px-6 py-2 rounded-xl bg-darkBlue"
+          className={`absolute bottom-[5%] right-[5%] text-xl font-bold justify-end font-fira px-6 py-2 rounded-xl ${isCorrect ? "bg-darkBlue text-white" : "bg-slate-200 text-black/50 cursor-not-allowed"}`}
           onClick={handleNextQuestion}>
           NEXT
         </button>
