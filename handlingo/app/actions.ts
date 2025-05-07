@@ -13,12 +13,12 @@ export const signUpAction = async (formData: FormData) => {
   // converts sent data to strings
   const fname = formData.get("firstName")?.toString();
   const lname = formData.get("lastName")?.toString();
-  const email = formData.get("email")?.toString();
+  const email = formData.get("email")?.toString().toLowerCase();
   const username = formData.get("username")?.toString();
   const password = formData.get("password")?.toString();
   const supabase = await createClient();
   const origin = (await headers()).get("origin");
-
+  
   console.log(fname, lname, email, username, password);
 
   const nameRegex = /^[A-Za-z]+$/;

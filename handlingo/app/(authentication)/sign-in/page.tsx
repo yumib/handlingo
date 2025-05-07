@@ -69,10 +69,10 @@ export default async function SignIn(props: { searchParams: Promise<Record<strin
           Log in
         </SubmitButton>
 
-        {/* Forgot Password*/}
+        {/* Forgot Password
         <Link className="text-xs text-foreground underline" href="/forgot-password">
               Forgot your password?
-        </Link>
+        </Link> */}
       
       </div> {/* end blue box container */}
     </form> 
