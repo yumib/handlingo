@@ -28,12 +28,12 @@ const QuestionPage = () => {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
   const [pointsAwarded, setPointsAwarded]= useState(false);
-  const [videoUrl, setVideoUrl] = useState("")
+  const [picUrl, setPicUrl] = useState("")
   // keeps track of what question the user is on by parsing the url
   const questionNumber = parseInt(searchParams.get("q") || "1", 10);
   //to track if user has gotten answer correct at some point
   const [isCorrect, setIsCorrect] = useState(true); // default = true for now. change later
-
+  const [totalQuestions, setTotalQuestions] = useState<number | null>(null);
   useEffect(() => {
     if (!params.sectionId || isNaN(questionNumber)) return;
 
@@ -44,19 +44,21 @@ const QuestionPage = () => {
     const fetchQuestion = async () => {
       try {
         // fetch question and video in parallel
-        const [questionRes, videoRes] = await Promise.all([
+        const [questionRes, picRes] = await Promise.all([
           fetch(`/api/section/${params.sectionId}/${questionNumber}`),
-          fetch(`/api/lessonVids/${params.sectionId}/${questionNumber - 5}`) //since video is 1-5
+          fetch(`/api/quizPics/${params.sectionId}/${questionNumber - 5}`) //since video is 1-5
         ]);
 
         const questionData = await questionRes.json();
-        const videoData = await videoRes.json();
+        const picData = await picRes.json();
         
         if (!questionRes.ok) throw new Error(questionData.error);
-        if (!videoRes.ok) throw new Error(videoData.error);
+        if (!picRes.ok) throw new Error(picData.error);
 
         setQuestion(questionData.question); // set question data
-        setVideoUrl(videoData.lessonVid); // set video URL
+        setTotalQuestions(questionData.total_questions);//sets the total amount of questions in the section
+        setPicUrl(picData.quizPic); // set pic URL
+
 
         // Reset UI state for new question
         setIsCorrect(false); 
@@ -77,6 +79,7 @@ const QuestionPage = () => {
     setPointsAwarded(false);
     setSelectedAnswer(null);
     setFeedback("");
+    
   }, [questionNumber]);
 
 
@@ -105,19 +108,39 @@ const QuestionPage = () => {
         return;
       }
       setSelectedAnswer(answer);
+      //progress section
   
+    if(totalQuestions)
+      try {
+        const result = await fetch("/api/progress", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sectionId: Number(params.sectionId),
+            progress_pct: (questionNumber / totalQuestions) * 100,// the progress being added to the lesson progress when the user gets a question right
+          }),
+        });
+        
+  
+        if (!result.ok) {
+          const error = await result.json();
+          console.error("Failed to update progress:", error);
+        }
+      } catch (error) {
+        console.error("Error updating progress:", error);
+      }
+      // points section
     if(answer === question.correct_answer)
       {
         setFeedback("Good job! Thats correct!");
         setIsCorrect(true) //user got answer correct
-        if(questionNumber===5 && !pointsAwarded){
+        if(!pointsAwarded){
         try{
-          const result = await fetch("/api/points",{
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ amount: 5 }) // the points we're giving in this section(5 points for getting a question right)
-          
-        });
+            const result = await fetch("/api/points",{
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ amount: 5}) // the points we're giving in this section(5 points for getting a question right)
+            });   
           if(!result.ok)
           {
             let errorText;
@@ -141,27 +164,35 @@ const QuestionPage = () => {
         }
         
           }
-        try {
-          const result = await fetch("/api/progress", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              sectionId: Number(params.sectionId),
-              progress_pct: 1,// the progress being added to the lesson progress when the user gets a question right
-            }),
-          });
-          
-    
-          if (!result.ok) {
-            const error = await result.json();
-            console.error("Failed to update progress:", error);
-          }
-        } catch (error) {
-          console.error("Error updating progress:", error);
-        }
         }
       else
       {
+        try{
+        const result = await fetch("/api/points",{
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ amount: 2}) // the points we're giving in this section(5 points for getting a question right)
+        });
+        if(!result.ok)
+          {
+            let errorText;
+            try {
+              errorText = await result.json();
+            } catch {
+              errorText = { error: "Non-JSON response or empty body" };
+            }
+            console.error("Failed to give points:", errorText);
+          }
+          else
+          {
+            console.log("Half points given on wrong answer");
+            setPointsAwarded(true);
+          }
+      }
+      catch(error)
+      {
+        console.error("Error updating points/score")
+      } 
         setIsCorrect(true) // REMOVE LATER. For now, acting as only allow next after user answers question
         setFeedback(`That is incorrect. The correct answer was ${question.correct_answer}`);
       }
@@ -181,15 +212,19 @@ const QuestionPage = () => {
           
           {/* lesson progress bar -- PENDING -- THIS IS USING FAKE NUMBER RN */}
           <div className="flex pt-2 gap-1.5 w-6/12 pr-9">
+          {totalQuestions && (
+            <>
               <span className="text-sm text-gray-600 font-nunito">
-                {Math.round(10)}%
+                {Math.round((questionNumber / totalQuestions) * 100)}%
               </span>
               <div className="w-full h-4 border border-black bg-white rounded-full">
                 <div
                   className="h-full bg-lightBlue rounded-full"
-                  style={{ width: `${10}%` }}
+                  style={{ width: `${(questionNumber / totalQuestions) * 100}%` }}
                 />
-              </div> 
+              </div>
+            </>
+          )}
           </div>
         </div>
 
@@ -206,7 +241,11 @@ const QuestionPage = () => {
           <div className="flex flex-col items-center w-full h-full">
             {/* Video */}
             <div className="w-[530px] pb-5"> 
-              <VideoPlayer videoUrl={videoUrl} />
+              <img
+                src={picUrl}
+                alt="Quiz image"
+                className="w-[530px] h-auto rounded-md shadow-md"
+              />
             </div>
 
             {/* Multiple Choice */}
@@ -223,10 +262,10 @@ const QuestionPage = () => {
 
           {/* NEXT button */}
           <button 
-          disabled={!isCorrect}
-          className="absolute bottom-[5%] right-[5%] text-xl font-bold justify-end font-fira text-black px-6 py-2 rounded-xl bg-darkBlue"
-          onClick={handleNextQuestion}>
-          NEXT
+            disabled={!isCorrect}
+            className={`absolute bottom-[5%] right-[5%] text-xl font-bold justify-end font-fira px-6 py-2 rounded-xl ${isCorrect ? "bg-darkBlue text-white" : "bg-slate-200 text-black/50 cursor-not-allowed"}`}
+            onClick={handleNextQuestion}>
+            NEXT
           </button>
 
         </div>

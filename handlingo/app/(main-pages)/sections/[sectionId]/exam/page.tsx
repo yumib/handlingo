@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams, useParams, useRouter } from "next/navigation";
+import LoadingImage from "@/components/ui/loading";
 // this should let us use the camera component to predict what letter was signed and give points if it was right 
 import CameraFeed from "@/components/client/CameraFeed";
 import TrafficLight from "@/components/ui/trafficLight";
-import LoadingImage from "@/components/ui/loading";
 
 
 
@@ -32,6 +32,7 @@ const QuestionPage = () => {
   const questionNumber = parseInt(searchParams.get("q") || "1", 10);
   //to track if user has gotten answer correct at some point
   const [isCorrect, setIsCorrect] = useState(true); // default = true for now. change later
+  const [totalQuestions, setTotalQuestions] = useState<number | null>(null);
 
   useEffect(() => {
     if (!params.sectionId) return;
@@ -44,8 +45,10 @@ const QuestionPage = () => {
         if (!res.ok) throw new Error(data.error);
 
         setQuestion(data.question); // Assuming the API returns { question: { ... } }
+        setTotalQuestions(data.total_questions);//sets the total amount of questions in the section
 
         // Reset UI state for new question
+        setLoading(false);
         setIsCorrect(false); 
         setSelectedAnswer(null);
         setFeedback("");
@@ -74,7 +77,7 @@ const QuestionPage = () => {
     let newPhase = "exam";
     if (nextQuestionNumber >= 15) {
       // go from quiz to end of section
-      // PENDING - figure out what happens at the end
+      // PENDING - figure out what happens at the end      
     } 
 
     // next question
@@ -89,10 +92,31 @@ const QuestionPage = () => {
     }
     setSelectedAnswer(predictedLetter);
 
+    //progress section
+    if(totalQuestions)
+      {
+      try {
+        const result = await fetch("/api/progress", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sectionId: Number(params.sectionId),
+            progress_pct: (questionNumber / totalQuestions) * 100,// the progress being added to the lesson progress when the user gets a question right
+          }),
+        });
+        
+        if (!result.ok) {
+          const error = await result.json();
+          console.error("Failed to update progress:", error);
+        }
+      } catch (error) {
+        console.error("Error updating progress:", error);
+      }
+    }
+
+    //points section
     if(predictedLetter === question.correct_answer)
       {
-        setFeedback("Thats correct!");
-        setIsCorrect(true)
         try{
           const result = await fetch("/api/points",{
             method: "POST",
@@ -114,24 +138,6 @@ const QuestionPage = () => {
         {
           console.error("Error updating points/score")
         }
-        try {
-          const result = await fetch("/api/progress", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              sectionId: Number(params.sectionId),
-              amount: 16.67,// the progress being added to the lesson progress when the user gets a question right
-            }),
-          });
-    
-          if (!result.ok) {
-            const error = await result.json();
-            console.error("Failed to update progress:", error);
-          }
-        } catch (error) {
-          console.error("Error updating progress:", error);
-        }
-    
       }
       else
       {
@@ -156,15 +162,19 @@ const QuestionPage = () => {
           
           {/* lesson progress bar -- PENDING -- THIS IS USING FAKE NUMBER RN */}
           <div className="flex pt-2 gap-1.5 w-6/12 pr-9">
+          {totalQuestions && (
+            <>
               <span className="text-sm text-gray-600 font-nunito">
-                {Math.round(10)}%
+                {Math.round((questionNumber / totalQuestions) * 100)}%
               </span>
               <div className="w-full h-4 border border-black bg-white rounded-full">
                 <div
                   className="h-full bg-lightBlue rounded-full"
-                  style={{ width: `${10}%` }}
+                  style={{ width: `${(questionNumber / totalQuestions) * 100}%` }}
                 />
-              </div> 
+              </div>
+            </>
+          )}
           </div>
         </div>
 
@@ -197,7 +207,15 @@ const QuestionPage = () => {
             
             {/* Traffic Light */}
             <div className="pt-7">
-              <TrafficLight status={status} />
+            <TrafficLight
+                status={status}
+                onGreenHoldComplete={() => {
+                  // once user holds a correct sign long enough
+                  if (!isCorrect) {
+                    setIsCorrect(true); // enable NEXT button
+                  }
+                }}
+              />
             </div>
 
           </div>
@@ -205,10 +223,10 @@ const QuestionPage = () => {
           {/* NEXT button */}
           <button 
           disabled={!isCorrect}
-          className="absolute bottom-[5%] right-[5%] text-xl font-bold justify-end font-fira text-black px-6 py-2 rounded-xl bg-darkBlue"
+          className={`absolute bottom-[5%] right-[5%] text-xl font-bold justify-end font-fira px-6 py-2 rounded-xl ${isCorrect ? "bg-darkBlue text-white" : "bg-slate-200 text-black/50 cursor-not-allowed"}`}
           onClick={handleNextQuestion}>
           NEXT
-          </button>
+        </button>
 
         </div>
     </div>

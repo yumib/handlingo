@@ -1,5 +1,6 @@
 import { HandLandmarkerResult } from "@mediapipe/tasks-vision";
 import * as tf from '@tensorflow/tfjs';
+import { Noto_Sans_Indic_Siyaq_Numbers } from "next/font/google";
 
 /**
  * Extracts the 2D hand landmark data from the detection result and converts it to a tensor.
@@ -29,19 +30,29 @@ export const getLandmarkData = (result: HandLandmarkerResult, imageWidth: number
     console.warn("Unexpected number of hand landmarks:", hand.length);
     return null;
   }
-
-  const minX=Math.min(...hand.map((point)=> point.x));
-  const maxX=Math.max(...hand.map((point)=> point.x));
-  const minY=Math.min(...hand.map((point)=> point.y));
-  const maxY=Math.max(...hand.map((point)=> point.y));
   // Flatten the [x, y] pairs into a single comma-separated string
   //could be an issue here not sure
-  const normalizedData = hand
-    .map((point) => [
-      (point.x - minX) / (maxX - minX), 
-      (point.y - minY) / (maxY - minY)
-    ]) //normalize using image dimensions
-    .flat(); // flatten into a 1D array
+  const wrist = hand[0];
+  const indexBase = hand[5];
+const pinkyBase = hand[17];
+
+// Compute angle of rotation to align index-to-pinky horizontally
+const dx = pinkyBase.x - indexBase.x;
+const dy = pinkyBase.y - indexBase.y;
+const angle = Math.atan2(dy, dx);
+
+function rotate(x: number, y: number, angle: number): [number, number] {
+  return [
+    x * Math.cos(angle) + y * Math.sin(angle),
+    -x * Math.sin(angle) + y * Math.cos(angle)
+  ];
+}
+const refDistance = Math.hypot(hand[12].x - wrist.x, hand[12].y - wrist.y) || 1;
+const normalizedData = hand.map(p => {
+  const x = (p.x - wrist.x) / refDistance;
+  const y = (p.y - wrist.y) / refDistance;
+  return rotate(x, y, -angle); // rotate hand to a consistent pose
+}).flat();
 
   //console.log("Normalized Data: ", normalizedData);
 

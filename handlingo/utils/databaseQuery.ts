@@ -51,6 +51,22 @@ export async function createNewUser(fname: string, lname: string, email: string,
     return { success: true, data };
 }
 
+export async function getUserByEmailOrUsername(email: string, username: string) {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("User_Table")
+      .select("*")
+      .or(`email.eq.${email},username.eq.${username}`)
+      .maybeSingle();
+  
+    if (error) {
+      console.error("DB query failed: ", error);
+      return null;
+    }
+  
+    return data;
+  }  
+
 // DASHBOARD QUERIES:
 export async function getUserLessonAttempts(userId: number) {
     const supabase = await initializeSupabase();
@@ -224,7 +240,6 @@ export async function getQuestionByNum(questionNum: number, sectionId: number) {
         .single();
 
     if (error) throw new Error("Error fetching question");
-    console.log(data)
     return data;
 }
 
@@ -257,11 +272,10 @@ export async function updateUserScore(userId: number, amount: number) {
 
     // selecting the score from the user progress table 
     const { data, error: fetchError } = await supabase
-        .from("User_Progress_Table")
+        .from("User_Table")
         .select("score")
-        .eq("user_id", userId)
+        .eq("id", userId)
         .single();
-
     if (fetchError) {
         console.error("Error fetching score: ", fetchError);
         throw new Error("Failed to fetch user score.");
@@ -271,14 +285,13 @@ export async function updateUserScore(userId: number, amount: number) {
         console.log("Ignoring update: score amount not positive.");
         return { success: false, message: "Score update must be positive." };
     }
-    
 
     // updating the score in the database
     // this might break if the permissions do the same thing as the email 
     const { error } = await supabase
-        .from("User_Progress_Table")
+        .from("User_Table")
         .update({ score: newScore })
-        .eq("user_id", userId);
+        .eq("id", userId);
 
     if (error) {
         console.error("Error updating score: ", error);
@@ -288,18 +301,25 @@ export async function updateUserScore(userId: number, amount: number) {
 }
 
 // get url of video lessons
-export const getSignedVideoUrl = async (sectionId: number, questionNum: number) => {
+export const getSignedAssetUrl = async (sectionId: number, questionNum: number, folder: string) => {
   const supabase = await initializeSupabase();
-  const path = `section_${sectionId}/question_${questionNum}.mp4`;
+  let extension = "";
+  if (folder === 'lesson-vids') {
+    extension = 'mp4';
+  } else{
+    extension = 'png'
+  }
+  const path = `section_${sectionId}/question_${questionNum}.${extension}`;
+  console.log(path);
 
   const { data, error } = await supabase
     .storage
-    .from('lesson-vids')
+    .from(folder)
     .createSignedUrl(path, 60)
 
     if (error) {
-        console.error("Error getting lesson vid url: ", error);
-        throw new Error("Failed to get URL to lesson video.");
+        console.error(`Error getting asset url in folder ${folder}: `, error);
+        throw new Error("Failed to get URL to asset in folder: " + folder);
     }
 
   return data.signedUrl;
