@@ -48,6 +48,7 @@ const QuestionPage = () => {
         setTotalQuestions(data.total_questions);//sets the total amount of questions in the section
 
         // Reset UI state for new question
+        setLoading(false);
         setIsCorrect(false); 
         setSelectedAnswer(null);
         setFeedback("");
@@ -116,8 +117,6 @@ const QuestionPage = () => {
     //points section
     if(predictedLetter === question.correct_answer)
       {
-        setFeedback("Thats correct!");
-        setIsCorrect(true)
         try{
           const result = await fetch("/api/points",{
             method: "POST",
@@ -208,7 +207,15 @@ const QuestionPage = () => {
             
             {/* Traffic Light */}
             <div className="pt-7">
-              <TrafficLight status={status} />
+            <TrafficLight
+                status={status}
+                onGreenHoldComplete={() => {
+                  // once user holds a correct sign long enough
+                  if (!isCorrect) {
+                    setIsCorrect(true); // enable NEXT button
+                  }
+                }}
+              />
             </div>
 
           </div>
@@ -216,10 +223,10 @@ const QuestionPage = () => {
           {/* NEXT button */}
           <button 
           disabled={!isCorrect}
-          className="absolute bottom-[5%] right-[5%] text-xl font-bold justify-end font-fira text-black px-6 py-2 rounded-xl bg-darkBlue"
+          className={`absolute bottom-[5%] right-[5%] text-xl font-bold justify-end font-fira px-6 py-2 rounded-xl ${isCorrect ? "bg-darkBlue text-white" : "bg-slate-200 text-black/50 cursor-not-allowed"}`}
           onClick={handleNextQuestion}>
           NEXT
-          </button>
+        </button>
 
         </div>
     </div>
