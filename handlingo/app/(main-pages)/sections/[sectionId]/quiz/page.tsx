@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useParams, useRouter } from "next/navigation";
 import Layout from '@/components/ui/layout'; 
 import MultipleChoice from "@/components/client/multipleChoice";
-import VideoPlayer from "@/components/ui/lessonVid";
 import LoadingImage from "@/components/ui/loading";
 
 
@@ -57,7 +56,7 @@ const QuestionPage = () => {
 
         setQuestion(questionData.question); // set question data
         setTotalQuestions(questionData.total_questions);//sets the total amount of questions in the section
-        setPicUrl(picData.quizPic); // set video URL
+        setPicUrl(picData.quizPic); // set pic URL
 
 
         // Reset UI state for new question
@@ -241,8 +240,11 @@ const QuestionPage = () => {
           <div className="flex flex-col items-center w-full h-full">
             {/* Video */}
             <div className="w-[530px] pb-5"> 
-              {/* <VideoPlayer videoUrl={videoUrl} /> */}
-              {picUrl}
+              <img
+                src={picUrl}
+                alt="Quiz image"
+                className="w-[530px] h-auto rounded-md shadow-md"
+              />
             </div>
 
             {/* Multiple Choice */}
@@ -259,10 +261,10 @@ const QuestionPage = () => {
 
           {/* NEXT button */}
           <button 
-          disabled={!isCorrect}
-          className="absolute bottom-[5%] right-[5%] text-xl font-bold justify-end font-fira text-black px-6 py-2 rounded-xl bg-darkBlue"
-          onClick={handleNextQuestion}>
-          NEXT
+            disabled={!isCorrect}
+            className={`absolute bottom-[5%] right-[5%] text-xl font-bold justify-end font-fira px-6 py-2 rounded-xl ${isCorrect ? "bg-darkBlue text-white" : "bg-slate-200 text-black/50 cursor-not-allowed"}`}
+            onClick={handleNextQuestion}>
+            NEXT
           </button>
 
         </div>
