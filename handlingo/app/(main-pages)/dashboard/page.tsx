@@ -1,7 +1,7 @@
 import { getUserLessonAttempts, getInternalUserByEmail, getUnitbyNum, getSectionsbyUnitNum } from "@/utils/databaseQuery";
 import { createClient } from "@/utils/supabase/server";
+import PimpLeader from "@/components/client/pimpLeader"
 import Link from 'next/link';
-import Image from "next/image";
 
 {/* Gabe Lira recommended breaking this up into Functional Components! Cleaner way to organize*/}
 type LessonsOverviewProps = {
@@ -16,17 +16,19 @@ const LessonsOverview = ({ sectionInfo, userAttempts, unitInfo }: LessonsOvervie
     <div className="flex flex-col h-[calc(100vh-5rem)]"> {/* full height minus top margin */}
 
     {/* Unit Select */}
-    <div className="flex items-center gap-4 px-4 pt-4 w-1/5 mb-8">
-
-        <button className="font-semibold font-fira text-black border-b-4 border-black pb-1">
+    <div className="flex items-center px-4 pt-4 w-full mb-8">
+        <div className="flex items-center gap-4">
+            
+            <button className="font-semibold font-fira text-black border-b-4 border-black pb-1 whitespace-nowrap">
             Unit 1
-        </button>
+            </button>
 
-        <button className="font-semibold font-fira text-gray border-b-2 border-gray max-w-max pb-1">
-            Unit 2   {/* Link page once more lessons exist */}
-        </button>
+            <button className="font-semibold font-fira text-gray border-b-2 border-gray max-w-max pb-1 whitespace-nowrap">
+            Unit 2 {/* Link page once more lessons exist */}
+            </button>
 
-        <span className="ml-auto text-gray text-lg">→</span>
+            <span className="text-gray text-lg">→</span>
+        </div>
     </div>
 
     {/* Unit Title and Progress */}
@@ -99,104 +101,102 @@ const LessonsOverview = ({ sectionInfo, userAttempts, unitInfo }: LessonsOvervie
     </div> </>
 }
 
-{/* PimpLeader is the box with pimp tip + leaderboard and stats */}
-const PimpLeader = () => {
-    return <>
+// {/* PimpLeader is the box with pimp tip + leaderboard and stats */}
+// const PimpLeader = () => {
+//     return <>
 
-    {/* Pimp Tip */}
-    <div className="flex flex-col w-full h-32 bg-purple-300 rounded-xl"> 
-        {/* Title */}
-        <h1 className="text-lg font-bold font-fira text-black pt-2 pl-4">
-            Pimp Tip!
-        </h1>
+//     {/* Pimp Tip */}
+//     <div className="flex flex-col w-full h-32 bg-purple-300 rounded-xl"> 
+//         {/* Title */}
+//         <h1 className="text-lg font-bold font-fira text-black pt-2 pl-4">
+//             Pimp Tip!
+//         </h1>
 
-        {/* Pimp + Tip */}
-        <div className="flex w-min-56 w-full h-28">
-            {/* Pimp */}
-            <div style={{justifySelf: 'start'}} className="pl-10 py-3">
-                <Image
-                src = "/assets/actually-pimp.png"
-                alt = "Nerd"
-                width = {70}
-                height = {70}
-                />
-            </div>
+//         {/* Pimp + Tip */}
+//         <div className="flex w-min-56 w-full h-28">
+//             {/* Pimp */}
+//             <div style={{justifySelf: 'start'}} className="pl-10 py-3">
+//                 <Image
+//                 src = "/assets/actually-pimp.png"
+//                 alt = "Nerd"
+//                 width = {70}
+//                 height = {70}
+//                 />
+//             </div>
 
-            {/* Tip */}
-            <div style={{justifySelf: 'center'}} className="px-5 py-3">
-                <p className="text-sm font-medium font-fira text-black"> 
-                    Flap those fingers like wings!
-                    The more you practice, the smoother 
-                    you'll fly through ASL. 
-                </p>
-            </div>
-        </div>
-    </div>    
+//             {/* Tip */}
+//             <div style={{justifySelf: 'center'}} className="px-5 py-3">
+//                 <p className="text-sm font-medium font-fira text-black"> 
+//                     Flap those fingers like wings!
+//                     The more you practice, the smoother 
+//                     you'll fly through ASL. 
+//                 </p>
+//             </div>
+//         </div>
+//     </div>    
 
-    {/* Stats and Leaderboard */}
-    {/* overflow-y-auto flex-grow px-5 pr-8 pb-4*/}
-    <div className="flex overflow-y-auto flex-grow flex-col w-full h-[67vh] mt-7 border-2 border-black"> 
-        {/* Title */}
-        <h1 className="text-lg font-bold font-fira text-black pt-2 pl-4">
-                YOUR STATS
-            </h1>
-        {/* Stats */}
-        <div className="flex flex-col items-center mb-5"> 
-            {/* Info (rank and XP ) */}
-            <div className="flex flex-col items-center w-72 mx-5">
-                <div className='flex items-center justify-between w-40'>
-                    <div className='flex'>
-                    <h1 className="text-2xl font-bold font-fira text-black pb-1 pr-2">
-                        👑
-                    </h1>
-                    <h1 className="text-lg font-medium font-fira text-black pt-1">
-                        RANK
-                    </h1>
-                    </div>
-                    {/* Add RANK data grab here */}
-                    <h1 className="text-lg font-normal font-fira text-black">
-                        #10000
-                    </h1>
-                </div>
+//     {/* Stats and Leaderboard */}
+//     <div className="flex flex-col w-full mt-7 border-2 border-black overflow-y-auto h-[69vh] bg-purple-200"> 
+//         {/* Title */}
+//         <h1 className="text-lg font-bold font-fira text-black pt-2 pl-4">
+//                 YOUR STATS
+//             </h1>
+//         {/* Stats */}
+//         <div className="flex flex-col items-center mb-5"> 
+//             {/* Info (rank and XP ) */}
+//             <div className="flex flex-col items-center w-72 mx-5">
+//                 <div className='flex items-center justify-between w-40'>
+//                     <div className='flex'>
+//                     <h1 className="text-2xl font-bold font-fira text-black pb-1 pr-2">
+//                         👑
+//                     </h1>
+//                     <h1 className="text-lg font-medium font-fira text-black pt-1">
+//                         RANK
+//                     </h1>
+//                     </div>
+//                     {/* Add RANK data grab here */}
+//                     <h1 className="text-lg font-normal font-fira text-black">
+//                         #10000
+//                     </h1>
+//                 </div>
 
-                <div className='flex items-center justify-between w-40'>
-                    <div className='flex'>
-                    <h1 className="text-2xl font-bold font-fira text-black pb-1 pr-2">
-                        ✨
-                    </h1>
-                    <h1 className="text-lg font-medium font-fira text-black pt-1">
-                        XP
-                    </h1>
-                    </div>
-                    {/* Add XP data grab here */}
-                    <h1 className="text-lg font-normal font-fira text-black">
-                        999999
-                    </h1>
-                </div>
+//                 <div className='flex items-center justify-between w-40'>
+//                     <div className='flex'>
+//                     <h1 className="text-2xl font-bold font-fira text-black pb-1 pr-2">
+//                         ✨
+//                     </h1>
+//                     <h1 className="text-lg font-medium font-fira text-black pt-1">
+//                         XP
+//                     </h1>
+//                     </div>
+//                     {/* Add XP data grab here */}
+//                     <h1 className="text-lg font-normal font-fira text-black">
+//                         999999
+//                     </h1>
+//                 </div>
 
                 
-            </div>
-        </div>
+//             </div>
+//         </div>
         
 
 
-        {/* Leaderboard */}
-        <div className="flex flex-col h-full"> 
-            {/* Title */}
-            <h1 className="text-lg font-bold font-fira text-black pt-2 pl-4">
-                LEADERBOARD
-            </h1>
+//         {/* Leaderboard */}
+//         <div className="flex flex-col h-full"> 
+//             {/* Title */}
+//             <h1 className="text-lg font-bold font-fira text-black pt-2 pl-4">
+//                 LEADERBOARD
+//             </h1>
 
-            {/* Table */}
-            <div className="flex justify-center my-5 mx-10 h-[80vh] bg-slate-300">
-                Coming Soon!
-            </div>
+//             {/* PENDING - Table */}
+//             <div className="flex justify-center my-5 mx-10 min-h-0 h-96 bg-slate-300">
+//                 Coming Soon!
+//             </div>
 
-        </div>
-    </div>
-    </>
-}
-// overflow-y-auto flex-grow overflow-hidden
+//         </div>
+//     </div>
+//     </>
+// }
 
 {/* Everything below is part of whats getting output */}
 export default async function dashboard() {
@@ -234,9 +234,9 @@ export default async function dashboard() {
 
     // UI stuff
     return ( <>
-        <div className= "flex h-[90vh] min-w-48 w-full">
+        <div className= "flex flex-grow w-full overflow-hidden">
             {/* unit selection + subunits */}
-            <div className= "w-2/3 my-3 ml-7 border-2 border-black overflow-hidden">
+            <div className= "flex flex-col w-2/3 h-5/6 ml-7 border-2 border-black overflow-hidden">
                 <LessonsOverview
                     sectionInfo={sectionInfo}
                     userAttempts={userAttempts}
@@ -245,10 +245,9 @@ export default async function dashboard() {
             </div>
 
             {/* pimp tip + leaderboard */}
-            <div className= "w-1/3 m-2 mx-7 overflow-hidden">
-                <PimpLeader /> 
+            <div className= "flex flex-col w-1/3 m-2 mx-7 overflow-hidden">
+                <PimpLeader currentUserId={internalUser.id}/> 
             </div>
         </div>
-        
     </> );
 }

@@ -40,6 +40,7 @@ const QuestionPage = () => {
   const [showCongrats, setShowCongrats] = useState(false); //end of lesson
   const [width, height] = useWindowSize();
 
+
   useEffect(() => {
     if (!params.sectionId) return;
 
@@ -81,7 +82,6 @@ const QuestionPage = () => {
     // later should use 'total_question' field / 3 to calculate when to switch
     // for now its fine. 6 is start of quiz. 11 is start of exam. 15 is end of section
     let newPhase = "exam";
-
     // if end of lesson, show congrats!
     if (nextQuestionNumber >= 16) {
       setShowCongrats(true);

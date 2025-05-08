@@ -27,11 +27,6 @@ export async function getUserByUsername(username: string) {
 
 export async function createNewUser(fname: string, lname: string, email: string, username: string, password: string) {
     const supabase = await initializeSupabase(); // Make sure Supabase is ready
-    const { data: userData, error: userError } = await supabase.auth.getUser();
-
-    if (userError || !userData?.user) {
-        throw new Error("Failed to get authenticated user.");
-    }
 
     // Insert user into 'User_Table'
     const { data, error } = await supabase
