@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useParams, useRouter } from "next/navigation";
 import Layout from '@/components/ui/layout'; 
 import MultipleChoice from "@/components/client/multipleChoice";
-import VideoPlayer from "@/components/ui/lessonVid";
 import LoadingImage from "@/components/ui/loading";
 
 

@@ -85,6 +85,7 @@ export async function getUserLessonAttempts(userId: number) {
 
 export async function getInternalUserByEmail(email: string) {
     const supabase = await initializeSupabase();
+
     const { data, error } = await supabase
         .from("User_Table") // Your hosted user table
         .select("*") // Select relevant fields
@@ -251,7 +252,6 @@ export async function createNewUserProgress(userId: number, sectionId: number) {
             {
                 user_id: userId,
                 completion_status: "incomplete",
-                score: 0,
                 last_attempted_at: new Date().toISOString(),
                 progress_pct: 0,
                 section_id: sectionId
