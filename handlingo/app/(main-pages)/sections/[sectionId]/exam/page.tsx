@@ -9,6 +9,7 @@ import TrafficLight from "@/components/ui/trafficLight";
 //confetti!
 import Confetti from "react-confetti";
 import { useWindowSize } from "@react-hook/window-size";
+import Image from 'next/image';
 
 
 
@@ -95,6 +96,15 @@ const QuestionPage = () => {
   if (showCongrats) {
     return (
       <div className="flex flex-col justify-center items-center h-screen text-center">
+        <div className="pl-10 py-3">
+          <Image
+            src = "/assets/pimp-party.png"
+            alt = "Nerd"
+            width = {350}
+            height = {350}
+          />
+        </div>
+
         {/* Confetti! */}
         <Confetti width={width} height={height} recycle={false} numberOfPieces={500} />
 
