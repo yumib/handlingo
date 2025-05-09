@@ -26,6 +26,7 @@ const QuestionPage = () => {
     correct_answer: string;
   };
   
+  const [unauthorized, setUnauthorized] = useState(false);
   const [question, setQuestion] = useState<Question | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -49,7 +50,15 @@ const QuestionPage = () => {
       try {
         const res = await fetch(`/api/section/${params.sectionId}/${questionNumber}`);
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
+
+        if (!res.ok) {
+          if (data.error === "Error getting user") {
+            setUnauthorized(true);
+            return;
+          } else {
+            throw new Error(data.error);
+          }
+        }
 
         setQuestion(data.question); // Assuming the API returns { question: { ... } }
         setTotalQuestions(data.total_questions);//sets the total amount of questions in the section
@@ -71,6 +80,15 @@ const QuestionPage = () => {
 
     fetchQuestion();
   }, [params.sectionId, searchParams]);
+
+  if (unauthorized) { 
+    return(
+      <div>
+          <h1>Unauthorized</h1>
+          <p>Please log in to view this page.</p>
+      </div>
+    );
+  }
 
   if (loading) return <LoadingImage />;
   if (!question) return <p>Question not found.</p>;

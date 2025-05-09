@@ -8,6 +8,10 @@ export async function GET(request: Request, context: { params: { sectionId?: str
     const supabase = await createClient(); 
     const { data: { user }, error } = await supabase.auth.getUser();
 
+    if (!user) {
+        return NextResponse.json({ error: 'Error getting user' }, { status: 400 });
+    }
+
     // get params
     let { params } = context;
     params = await params
@@ -15,10 +19,6 @@ export async function GET(request: Request, context: { params: { sectionId?: str
         return NextResponse.json({ error: "Missing sectionId parameter" }, { status: 400 });
     }
 
-    if (!user) {
-        return NextResponse.json({ message: 'Error getting internal user' }, { status: 400 });
-    }
-    
     // get user from User_Table
     const internalUser = await getInternalUserByEmail(String(user.email));
 

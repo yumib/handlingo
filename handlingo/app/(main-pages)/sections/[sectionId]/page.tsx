@@ -11,6 +11,7 @@ const SectionPage = () => {
     const params = useParams(); 
     const router = useRouter();
     const [loading, setLoading] = useState(true);
+    const [unauthorized, setUnauthorized] = useState(false);
 
     useEffect(() => {
         if (!params || !params.sectionId) return; 
@@ -25,7 +26,14 @@ const SectionPage = () => {
 
                 console.log(data);
 
-                if (!res.ok) throw new Error(data.error);
+                if (!res.ok) {
+                    if (data.error === "Error getting user") {
+                      setUnauthorized(true);
+                      return;
+                    } else {
+                      throw new Error(data.error);
+                    }
+                  }
 
                 const { question } = data;
                 if (!question) throw new Error("No valid question found.");
@@ -43,6 +51,15 @@ const SectionPage = () => {
         // call declared function
         fetchData();
     }, [params, router]);
+
+    if (unauthorized) { 
+        return(
+          <div>
+              <h1>Unauthorized</h1>
+              <p>Please log in to view this page.</p>
+          </div>
+        );
+    }
 
     // html to show redirection processing
     // ** loading screen ** //

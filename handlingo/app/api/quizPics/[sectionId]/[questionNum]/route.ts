@@ -1,8 +1,18 @@
 // Example route to fetch question using `q`
 import { NextResponse } from "next/server";
 import { getSignedAssetUrl } from "@/utils/databaseQuery";
+import { createClient } from "@/utils/supabase/server";
 
 export async function GET(request: Request, context: { params: { sectionId?: string; questionNum?: string } }) {
+
+    // find auth user
+    const supabase = await createClient(); 
+    const { data: { user }, error } = await supabase.auth.getUser();
+
+    if (!user) {
+        return NextResponse.json({ error: 'Error getting user' }, { status: 400 });
+    }
+
     // get parameters from url
     let { params } = context;
     params = await params

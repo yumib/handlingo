@@ -22,6 +22,7 @@ const QuestionPage = () => {
     options:string[];
   };
   
+  const [unauthorized, setUnauthorized] = useState(false);
   const [question, setQuestion] = useState<Question | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -50,10 +51,17 @@ const QuestionPage = () => {
 
         const questionData = await questionRes.json();
         const picData = await picRes.json();
-        
-        if (!questionRes.ok) throw new Error(questionData.error);
-        if (!picRes.ok) throw new Error(picData.error);
 
+        if (!questionRes.ok || !picRes.ok) {
+          if (questionData.error === "Error getting user") {
+            setUnauthorized(true);
+            return;
+          } else {
+            if (!questionRes.ok) throw new Error(questionData.error);
+            if (!picRes.ok) throw new Error(picData.error);
+          }
+        }
+        
         setQuestion(questionData.question); // set question data
         setTotalQuestions(questionData.total_questions);//sets the total amount of questions in the section
         setPicUrl(picData.quizPic); // set pic URL
@@ -81,7 +89,14 @@ const QuestionPage = () => {
     
   }, [questionNumber]);
 
-
+  if (unauthorized) { 
+    return(
+      <div>
+          <h1>Unauthorized</h1>
+          <p>Please log in to view this page.</p>
+      </div>
+    );
+  }
   if (loading) return <LoadingImage />;
   if (!question) return <p>Question not found.</p>;
 

@@ -22,6 +22,7 @@ const QuestionPage = () => {
     correct_answer: string;
   };
   
+  const [unauthorized, setUnauthorized] = useState(false);
   const [question, setQuestion] = useState<Question | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -49,9 +50,16 @@ const QuestionPage = () => {
   
         const questionData = await questionRes.json();
         const videoData = await videoRes.json();
-  
-        if (!questionRes.ok) throw new Error(questionData.error);
-        if (!videoRes.ok) throw new Error(videoData.error);
+
+        if (!questionRes.ok || !videoRes.ok) {
+          if (questionData.error === "Error getting user") {
+            setUnauthorized(true);
+            return;
+          } else {
+            if (!questionRes.ok) throw new Error(questionData.error)
+            if (!videoRes.ok) throw new Error(videoData.error);
+          }
+        }
   
         setQuestion(questionData.question);
         setVideoUrl(videoData.lessonVid);
@@ -76,6 +84,14 @@ const QuestionPage = () => {
     fetchData();
   }, [params.sectionId, searchParams]);
   
+  if (unauthorized) { 
+    return(
+      <div>
+          <h1>Unauthorized</h1>
+          <p>Please log in to view this page.</p>
+      </div>
+    );
+  }
 
 // ** loading screen ** //
   if (loading){
